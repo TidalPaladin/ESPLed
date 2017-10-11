@@ -1,7 +1,7 @@
-#include "Led.h"
+#include "ESPLed.h"
 
 
-
+// Antilog percent to [0,1023] lookup table
 const uint16_t _brightnessLut[101] PROGMEM = {
   0x000,	0x002,	0x004,	0x007,	0x009,
   0x00b,	0x00e,	0x010,	0x012,	0x015,
@@ -26,6 +26,7 @@ const uint16_t _brightnessLut[101] PROGMEM = {
   0x3ff,	
 };
 
+// Sine lookup table on [0,pi/2]
 #define SINE_STEPS  101
 const float _sineLut[SINE_STEPS] PROGMEM = {
   0.0000000,	0.0157073,	0.0314108,	0.0471065,	0.0627905,
@@ -53,25 +54,14 @@ const float _sineLut[SINE_STEPS] PROGMEM = {
 
 Led::Led() {
 
-  // Determine a LUT to map led brightness linearly
-  for(size_t i = 0; i < PWMRANGE+1; i++){
-
-  }
-
 }
 
-/*
-  Constructor using pin and style
-  @params
-    GPIO pin to use for the Led
-*/
+
 #ifdef ESP32
-Led::Led(uint8_t pin, uint8_t channel, led_style_t style = REG){
+Led::Led(uint8_t pin, uint8_t channel, led_style_t style){
   setChannel(channel);
   setPin(pin);
   setStyle(style);
-  
-  
 }
 #else
 Led::Led(uint8_t pin, led_style_t style) {
@@ -102,7 +92,7 @@ Led &Led::setPin(uint8_t pin) {
   _gpio.pin = pin;
   
 #ifdef ESP32
-  ledcAttachPin(_gpio.pin, ledChannel);
+  ledcAttachPin(_gpio.pin, _gpio.ledChannel);
 #else
   pinMode(getPin(), OUTPUT);
 #endif
@@ -145,7 +135,7 @@ Led &Led::manual(){
 #ifdef ESP32
 Led &Led::setChannel(uint8_t chan){
   _gpio.ledChannel = chan;
-  ledcSetup(_gpio.ledChannel, freq, resolution);
+  ledcSetup(_gpio.ledChannel, _gpio.freq, _gpio.resolution);
   return *this;
 }
 
@@ -193,6 +183,7 @@ Led &Led::pulse(){
     _strategy->stop(); 
     delete _strategy; 
   }
+  off();
   _strategy = new Pulse(*this);
   return *this;
 }
@@ -227,16 +218,11 @@ Led &Led::blink(){
     _strategy->stop();
     delete _strategy; 
   }
+  off();
   _strategy = new Blink(*this);
   return *this;
 }
 
-
-
-led_mode_t Led::getMode(){
-  if(_strategy == nullptr) return MANUAL;
-  return _strategy->getMode();
-}
 
 unsigned long Led::getPeriod() {
   const float stepsPerPeriod = TWO_PI / getDeltaTheta();
@@ -298,11 +284,11 @@ Led &Led::toggle(uint8_t power) {
   @returns
     void	
 */
-void Led::sync(Led &master){
-  this->stop();
-  master.stop();
+// void Led::sync(Led &master){
+//   this->stop();
+//   master.stop();
 
-}
+// }
 
 
 
@@ -326,22 +312,30 @@ Led &Led::stop() {
 
 uint16_t Led::_mapToAnalog(uint8_t percent){
   const uint16_t ret = pgm_read_word(_brightnessLut + percent);
-  return (getStyle() == INVERTED) ? ret : PWMRANGE - ret;
+  return (getStyle() == REG) ? ret : PWMRANGE - ret;
 }
 
 float Pulse::_mapToSine(float theta){
 
   int index = 0;
   int sign = 1;
-  const int elements = 100;
+  const int elements = SINE_STEPS - 1;
 
+  /*
+    Use a sine lookup table from [0,pi/2] to find sine on
+    [0,2pi]
+  */
+
+  // Quadrant 3
   if(theta >= 3 * HALF_PI && theta < TWO_PI){
     index = -1 * elements;
     sign = -1;
   }
+  // Quadrant 2
   else if(theta > PI) {
     sign = -1;
   }
+  // Quadrant 1
   else if(theta > HALF_PI ) {
     index = -1 * elements;
   }
@@ -359,7 +353,50 @@ float Pulse::_mapToSine(float theta){
 
 
 
+void Blink::_setupTimer(){
+#ifdef ESP32
+  
+  // Create a new task
+  xTaskCreate(
+    _tickerWrap,    // Function
+    "Led Task",     // Name
+    1000,           // Stack size in words
+    (void*)this,    // Parameter
+    1,              // Task priority
+    &_taskHandle    // Task handle
+  );
 
+#else
+  _handle(); 
+#endif
+}
+
+void Pulse::_setupTimer(){
+  #ifdef ESP32
+    
+  xTaskCreate(
+    _tickerWrap,    // Function
+    "Led Task",     // Name
+    1000,           // Stack size in words
+    (void*)this,    // Parameter
+    1,              // Task priority
+    &_taskHandle    // Task handle
+  );
+  
+  #else
+    _handle();
+  #endif
+  }
+
+
+void LedInterface::stop(){
+#ifdef ESP32
+  Serial.println("Deleting task");
+  vTaskDelete(_taskHandle);
+#else
+  _tick.detach();
+#endif
+}
 
 
 
@@ -378,15 +415,30 @@ float Pulse::_mapToSine(float theta){
     void	
 */
 
+unsigned long Blink::_handle() {
+  _led->toggle();
+  const unsigned long waitTime = _led->isOn() ? _led->getDuration() : _led->getInterval(); 
 
-void Blink::_handle() {
-  _led.toggle();
-  const unsigned long waitTime = _led.isOn() ? _led.getDuration() : _led.getInterval();
+#ifndef ESP32
   _tick.once_ms(waitTime, _tickerWrap, (void *)this);
+#endif
+
+  return waitTime;
 }
+
 void Blink::_tickerWrap(void *ptr){
   Blink *self = (Blink *)ptr;
+
+#ifdef ESP32
+  TickType_t xLastWakeTime = xTaskGetTickCount(); // Initialize for delayUntil
+  
+  while(true){
+    const TickType_t xFrequency = self->_handle() / portTICK_PERIOD_MS;
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
+  }
+#else
   self->_handle();
+#endif
 }
 
 
@@ -397,18 +449,19 @@ void Blink::_tickerWrap(void *ptr){
 
 
 
-void Pulse::_handle() {
-  const float sineOld = _mapToSine(_led.getTheta());
-  _led.setTheta(_led.getTheta() + _led.getDeltaTheta());
-  const float sine = _mapToSine(_led.getTheta());
+
+unsigned long Pulse::_handle() {
+
+  const float sine_old = _mapToSine(_led->getTheta());
+  _led->setTheta(_led->getTheta() + _led->getDeltaTheta());
+  const float sine = _mapToSine(_led->getTheta());
 
   
-
   // Calculate amplitude and offset for a sine wave between max and min
-  const uint8_t offset = (_led.getMaxBrightness() + _led.getMinBrightness()) / 2;
-  const uint8_t amplitude = _led.getMaxBrightness() - offset;
+  const uint8_t offset = (_led->getMaxBrightness() + _led->getMinBrightness()) / 2;
+  const uint8_t amplitude = _led->getMaxBrightness() - offset;
 
-  if( uint8_t(amplitude * sineOld) != uint8_t(amplitude * sine)) {
+  if( uint8_t(amplitude * sine_old) != uint8_t(amplitude * sine)) {
 
     // Increment theta by delta theta
     // Constraint to [0, 2PI) happens in setTheta()
@@ -419,13 +472,28 @@ void Pulse::_handle() {
     const uint8_t outputWave = amplitude * sine + offset;
 
     // And turn the LED on using the percent brightness
-    _led.on(outputWave);
+    _led->on(outputWave);
   }
+
   // Schedule next update
-  _tick.once_ms( hzToMs(_led.getRefreshRate()), _tickerWrap, (void *)this);
+#ifndef ESP32
+  _tick.once_ms(hzToMs(_led->getRefreshRate()), _tickerWrap, (void *)this);
+#endif
+  return _led->getRefreshRate();
 }
+
 void Pulse::_tickerWrap(void* ptr){
   Pulse *self = (Pulse *)ptr;
+#ifdef ESP32
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  
+  while(true){
+    const TickType_t xFrequency = self->_handle() / portTICK_PERIOD_MS;
+    vTaskDelayUntil(&xLastWakeTime, xFrequency);
+  }
+#else
   self->_handle();
+#endif
 }
+
 

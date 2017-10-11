@@ -1,21 +1,32 @@
 /*
   Led.h
   Scott Chase Waggener  tidalpaladin@gmail.com
-  9/16/2017
+  10/10/2017
 
   This library simplifies the use of Leds on the Arduino framework
   Designed on ESP8266
 
 */
 
-#ifndef LED_H
-#define LED_H
+#ifndef ESPLED_H
+#define ESPLED_H
 
 #include <Arduino.h>
-#include <Ticker.h>
 
-#define NODEMCU_BUILTIN D0
-#define ESP_BULITIN     2
+/*
+  Ticking handled using RTOS tasks for ESP32
+*/
+#ifndef ESP32
+#include <Ticker.h>
+#endif
+
+#ifndef PWMRANGE
+#define PWMRANGE  1023
+#endif
+
+#define NODEMCU_BUILTIN D0  // NodeMCU led
+#define ESP_BUILTIN     2   // The led on ESP12
+
 
 #define hzToMs(hz) (1000/hz)
 #define msToHz(ms) (1000/ms)
@@ -28,21 +39,17 @@
   Allow sync of Leds with a phase shift (ie destructively interfering waves)
 */
 
-typedef enum LED_PULSE_SPEEDS { SLOW = 0, MEDIUM = 1, FAST = 5 } led_pulse_t;
 typedef enum LED_STYLES { REG, INVERTED, RGB } led_style_t;
-typedef enum LED_MODES { BLINK, PULSE, MANUAL, SOS } led_mode_t;
 typedef enum LED_COLORS {RED, ORANGE, YELLOW, GREEN, BLUE, WHITE} led_colors_t;
 
 class Led;
 class LedInterface;
 class Pulse;
 class Blink;
-class ColorLed;
+// class ColorLed;
 
 class Led {
 public:
-
-  
 
   // Constructors
   Led();
@@ -100,7 +107,7 @@ public:
   // Sets how many steps theta will take per second
   Led &setRefreshRate(unsigned int hz);
 
-  // Puts the Led in pulse mode
+  // Puts the Led in pulse mode using LedInterface
   Led &pulse();
 
 
@@ -116,7 +123,7 @@ public:
   // Sets how long the LED stays on for during a blink
   Led &setDuration(unsigned long ms);
   
-  // Puts the Led in blink mode
+  // Puts the Led in blink mode using LedInterface
   Led &blink();
   
   
@@ -134,9 +141,6 @@ public:
 
   // Returns true if the LED is on
   const bool isOn() { return _isOn; }
-
-  // Returns whether the led is in MANUAL, BLINK, or PULSE mode
-  virtual led_mode_t getMode();
 
   // Returns the maximum brightness as a percent [0,100]
   uint8_t getMaxBrightness() { return _brightness.max; }
@@ -158,7 +162,7 @@ public:
     Getters Pulse
   */
 
-  // Uses theta to calculate a period for a single pulse
+  // Uses delta theta to calculate a period for a single pulse
   unsigned long getPeriod();
   
   // Gets the theta value in radians used to calculate brightness
@@ -204,15 +208,15 @@ public:
   // Toggles the LED using max/min brightness
   Led &toggle();
 
+  // NOT YET IMPLEMENTED
+  // void sync(Led &master);
 
-  void sync(Led &master);
-  //void _pulse();
 
   // Action wrappers
   static void wrap(void (Led:: *funcPtr)(void));
   static void toggleWrap(void *ptr);
 
-
+  // Start or stop the interface
   virtual Led &start();
   virtual Led &stop();
  
@@ -239,21 +243,20 @@ protected:
   LedInterface *_strategy;
   bool _isOn;
 
-  // Maps a power level in percent to an analogWrite value
-  // Value will be adjusted for Led Style
+  /*
+    Maps a power level in percent to an 10 bit analogWrite value
+    Compensation for the antilog nature of brightness perception is included
+    Returned value will be adjusted for led_style_t
+  */
   uint16_t _mapToAnalog(uint8_t percent);
-  
-  
-
-  // f(x) = maxAnalog * Exp[x / maxPercent]
 
   
   /*
     Pulse variables
   */
   unsigned int _refreshRate_hz = 60;   // Refresh rate for pulse mode
-  float _theta_rads = PI;
-  float _step_rads = PI;
+  float _theta_rads = PI;              // Current value of theta
+  float _step_rads = PI;               // Incremental change of theta
 
   /*
     Blink variables
@@ -261,7 +264,7 @@ protected:
   unsigned long _interval_ms = 3000;     // Interval on which to Pulse/blink
   unsigned long _duration_ms = 300;      // How long the led stays lit during a blink
 
-  virtual void _handle() { }
+  //virtual void _handle() { }
   
 
 
@@ -276,14 +279,33 @@ class LedInterface {
 public:
   LedInterface(){}
 
-  virtual void start() { this->_handle(); }
-  virtual void stop() { _tick.detach(); }
-  
-  virtual led_mode_t getMode() const = 0;
+  // Start actting
+  virtual void start() { if(!isStarted()) this->_setupTimer(); }
+
+  // Stop acting
+  virtual void stop();
+
+  bool isOn() { return _led->isOn(); }
+
+  // Returns true if the interface is not in a stopped state
+  bool isStarted() { return _started; }
 
 protected:
-  virtual void _handle() = 0;
+  Led *_led = nullptr;
+  bool _started = false;
+
+  virtual unsigned long _handle() = 0;
+
+#ifdef ESP32
+  TaskHandle_t _taskHandle = NULL;
+#else
   Ticker _tick;
+#endif
+
+  virtual void _setupTimer() = 0;
+  //static void _tickerWrap(void*) {}
+  
+
 
 };
 
@@ -292,41 +314,61 @@ protected:
 class Blink : public LedInterface {
 public:
 
-  Blink(Led &led) : _led(led){ }
-  
-  led_mode_t getMode() const { return BLINK; }
+  Blink(Led &led) { _led = &led; }
 
-private:
+  unsigned long getPeriod() { return _led->getPeriod(); }
+
+protected:
   
-  void _handle();
-  static void _tickerWrap(void*);
-  Led &_led;
+  // Handle blinking, returns the time until the next action
+  unsigned long _handle();
+
+  // Static ISR wrapper, pass (void*)this and cast back to interface subclass
+  static void _tickerWrap(void*); 
+
+  // Start ticking
+  void _setupTimer();
+
 
 };
 
 class Pulse : public LedInterface {
 public:
 
-  Pulse(Led &led) : _led(led){ }
- 
-  led_mode_t getMode() const { return PULSE; }
+  Pulse(Led &led) { _led = &led; }
+
+  unsigned long getDuration() { return _led->getDuration(); }
+  unsigned long getInterval() { return _led->getInterval(); }
+
+  
+
+protected:
+
+  // Handle blinking, returns the time until the next action
+  unsigned long _handle();
+
+  // Static ISR wrapper, pass (void*)this and cast back to interface subclass
+  static void _tickerWrap(void*);
+
+  // Start ticking
+  void _setupTimer();
+
 
 private:
 
-  void _handle();
-  static void _tickerWrap(void*);
+  // Returns the approximate sine of an angle in radians
+  // Done using a [0,pi/2] lookup table
   float _mapToSine(float theta);
-  Led &_led;
 
 };
 
 
 // NYI
-class ColorLed : public Led {
+// class ColorLed : public Led {
 
-public:
-  ColorLed &setColor(unsigned int, uint8_t, uint8_t, uint8_t);
+// public:
+//   ColorLed &setColor(unsigned int, uint8_t, uint8_t, uint8_t);
 
-};
+// };
 
 #endif

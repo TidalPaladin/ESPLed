@@ -1,0 +1,21 @@
+{
+    "name": "ESPLed",
+    "keywords": "led, blink, pulse",
+    "description": "Arduino library to simply control of LEDs on ESP8266/ESP32",
+    "repository":
+    {
+      "type": "git",
+      "url": "https://github.com/TidalPaladin/ESPLed.git"
+    },
+    "authors":
+    [
+      {
+        "name": "Chase Waggener",
+        "email": "tidalpaladin@gmail.com",
+        "maintainer": true
+      }
+    ],
+    "version": "0.1.0",
+    "frameworks": "arduino",
+    "platforms": "espressif8266, espressif32"
+  }
