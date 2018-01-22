@@ -11,6 +11,7 @@
 
 
 #include <Arduino.h>
+//#include "ESPBlink.h"
 #include "ESPLed.h"
 
 
@@ -18,8 +19,8 @@
 // Because LED_BUILTIN is ON when the pin is HIGH, we use INVERTED
 // Default led_style_t parameter is REG
 
-Led led(ESP_BUILTIN, INVERTED);
-// Pins ESP_BUILTIN and NODEMCU_BUILTIN are provided by Led.h
+ESPLed led(ESP_BUILTIN, HIGH);
+// Pins ESP_BUILTIN and NODEMCU_BUILTIN are provided by ESPLed.h
 
 
 // // For ESP32 an additional Led channel parameter is required
@@ -40,25 +41,25 @@ void setup(){
     led.on(30);     // Turn on to 30% brightness
 
     Serial.println("Demo of max brightness");
-    led.setMaxBrightness(50);
+    led.maxBrightness(50);
     led.on();                   // Now LED turns on to 50% brightness
     delay(2000);
 
 
     // Pulsing LED
-    Serial.println("Demo of pulse");
-    led.setMaxBrightness(100);
-    led.setPeriod(1000);        // 1000ms for a full pulse to complete
-    led.setRefreshRate(50);      // Set the refresh rate to 50 Hz (default = 60 Hz)
-    led.pulse().start();        // Set mode to pulse and start
-    delay(5000);
+    // Serial.println("Demo of pulse");
+    // led.maxBrightness(100);
+    // led.pulsePeriod(1000);        // 1000ms for a full pulse to complete
+    // led.pulseRefreshRate(50);      // Set the refresh rate to 50 Hz (default = 60 Hz)
+    // led.pulse().start();        // Set mode to pulse and start
+    // delay(5000);
 
-    // Blinking LED
-    Serial.println("Demo of blink");
-    led.setDuration(300);       // Blink on for 300 ms
-    led.setInterval(2000);      // Wait 2000 ms between blinks
-    led.blink().start();        // Set mode to blink and start blinking
-    delay(5000);
+    // // Blinking LED
+    // Serial.println("Demo of blink");
+    // led.blinkDuration(300);       // Blink on for 300 ms
+    // led.blinkInterval(2000);      // Wait 2000 ms between blinks
+    // led.blink().start();        // Set mode to blink and start blinking
+    // delay(5000);
 
     // Manual override
     Serial.println("Demo of manual override");
@@ -73,7 +74,7 @@ void setup(){
 
     // Other features
     Serial.println("Demo of other features");
-    led.setMinBrightness(10);   // The Led's off state will now be 10% brightness
+    led.minBrightness(10);   // The Led's off state will now be 10% brightness
     led.isOn();                 // Returns true if Led is on
 
 }
