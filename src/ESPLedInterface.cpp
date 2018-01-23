@@ -1,5 +1,10 @@
 #include "ESPLedInterface.h"
 
+ESPLedInterface &attachLed(ESPLed &led) {
+    _leds.push_back(led);
+    return *this;
+}
+
 void ESPLedInterface::start() {
     if( _started ) return;
 

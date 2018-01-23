@@ -39,3 +39,4 @@
 .vscode
 lib
 platformio.ini
+.vscode/launch.json

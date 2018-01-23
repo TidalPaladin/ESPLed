@@ -29,10 +29,9 @@ class ESPBlink;
 
 /**
  * Provides access to pwm_range
+ * TODO Can these be class members?
  */
-// extern "C" {
-//   #include "core_esp8266_wiring_pwm.c"
-// }
+
 extern uint32_t pwm_range;
 extern uint32_t pwm_freq;
 
@@ -123,26 +122,24 @@ public:
 #endif
 
   /**
-   * @brief Sets the mode of the LED using a template parameter
+   * @brief Assigns a strategy to the ESPLed
    * 
-   * @usage led.mode<Blink>();
-   * 
-   * @tparam T The strategy pattern
+   * @param strategy A reference to a strategy to use
    * 
    * @return this
    */
   template <class T>
-  ESPLed &mode() {
+  ESPLed &setMode(const ESPLedInterface &strategy) {
+
+    // Forward a reference to this ESPLed object to the interface!!!!
 
     if(_strategy != nullptr) { 
-      delete _strategy; 
+      delete _strategy;     // This calls stop() from desctructor
     }
-    _strategy = new T(this);
+    _strategy = &mode;
     return *this;
 
   }
-  ESPLed &pulse() { return mode<ESPBlink>(); }
-  ESPLed &blink() { return mode<ESPPulse>(); }
 
 
   /**
@@ -152,50 +149,7 @@ public:
    */
   ESPLed &start();
   ESPLed &stop();
-
-  /**
-   * @brief Sets the time for one pulse period,
-   * min -> max -> min
-   * 
-   * @param ms The time in milliseconds
-   * 
-   * @return this
-   */
-  ESPLed &pulsePeriod(unsigned long ms);
-  unsigned long pulsePeriod() const;
-
-  /**
-   * @brief Sets the rate at which changes in pulse brightness
-   * will be updated. This shouldn't need to be faster than what
-   * the human eye can perceive
-   * 
-   * @param hz The rate in hertz
-   * 
-   * @return this
-   */
-  ESPLed &pulseRefreshRate(unsigned int hz);
-  unsigned long pulseRefreshRate() const;
-
-
-  /**
-   * @brief Sets the interval between blinks
-   * 
-   * @param ms The time in ms between blinks
-   * 
-   * @return this
-   */
-  ESPLed &blinkInterval(unsigned long ms);
-  unsigned long blinkInterval() const;
   
-  /**
-   * @brief Sets how long the LED stays on for during a blink
-   * 
-   * @param ms The time in milliseconds
-   * 
-   * @return this
-   */
-  ESPLed &blinkDuration(unsigned long ms);
-  unsigned long blinkDuration() const;
 
   /**
    * @brief Gets the state of the LED
@@ -241,8 +195,10 @@ public:
 protected:
 
   /**
-   * @brief Maps a brightness from a percentage to a PWM value. Includes
-   * compensation for the antilog nature of brightness
+   * @brief Maps a brightness from a percentage to a PWM value. 
+   * 
+   * @details Includes compensation for the antilog nature of brightness.
+   * Conversion is done using a lookup table.
    * 
    * @param percent The brightness from 0-100
    * 
@@ -264,12 +220,12 @@ protected:
   static const uint16_t _brightnessLut[101];
 
   struct {
-    uint8_t max = 100; // The analogWrite() maximum
-    uint8_t min = 0;
+    uint8_t max : 7; // The analogWrite() maximum
+    uint8_t min : 7;
   } _brightness;
 
   ESPLedInterface *_strategy;
-  bool _isOn;
+  bool _isOn : 1;
 
     
 private:
