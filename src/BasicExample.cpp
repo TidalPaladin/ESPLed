@@ -61,7 +61,7 @@ void setup(){
     pulse.refreshRate(50);              // Set the refresh rate to 50 Hz (default = 60 Hz)   
     led.setMode(pulse);                 // Tell ESPLed to use the behaviors from ESPPulse instance pulse
     led.start();                        // Tell ESPLed to start acting on the behaviors from ESPPulse instance pulse
-    delay(5000);
+    delay(5000);   
 
     /* Demo of ESPBlink strategy */
     Serial.println("Demo of blink");

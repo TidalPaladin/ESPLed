@@ -18,6 +18,7 @@
 #include <Arduino.h>
 #include <Ticker.h>
 #include <vector>
+#include <algorithm>
 
 #ifndef __ESP_LED_H__
 class ESPLed;
@@ -27,10 +28,14 @@ class ESPLedInterface {
 
 public:
 
-
-  ESPLedInterface(ESPLed *led, unsigned long tick_interval_ms)
+  /**
+   * @brief Constructor
+   * 
+   * @param tick_interval_ms The time between calls to _loop() in ms
+   * 
+   */
+  ESPLedInterface(unsigned long tick_interval_ms)
   : 
-  _led(led),
   _tickInterval_ms(tick_interval_ms),
   _started(false)
   {
@@ -43,23 +48,39 @@ public:
    * 
    */
   ~ESPLedInterface() {
-    stop();
+    stopAll();
   }
+
+  /**
+   * @brief Gets how many ESPLed objects are attached to this strategy
+   * 
+   * @return The number of attached ESPLed objects
+   */
+  size_t attachedLedCount() { return _leds.size(); }
 
   /**
    * @brief Start the periodic action for this strategy
    * 
    * @details Creates a scheduled periodic call to _loop()
    * 
+   * @param led The ESPLed object
+   * 
    * 
    */
-  virtual void start();
+  void start(ESPLed &led);
 
   /**
    * @brief Stop the periodic action for this strategy
    * 
    */
-  virtual void stop();
+  void stop(ESPLed &led);
+
+
+  /**
+   * @brief Stop all actions
+   * 
+   */
+  void stopAll();
 
 
   /**
@@ -81,7 +102,7 @@ public:
    * @return The period of the wave in milliseconds
    */
   template <typename T>
-  static inline T hzToMilliseconds(T hz) final { return hz ? 1000 / hz : 0; }
+  static inline T hzToMilliseconds(T hz) { return hz ? 1000 / hz : 0; }
 
   /**
    * @brief Converts a period in milliseconds to a frequency in Hz
@@ -91,35 +112,68 @@ public:
    * @return The frequency of the wave in hertz
    */
   template <typename T>
-  static inline T millisecondsToHz(T ms) final { return ms ? 1000 / ms : 0; }
+  static inline T millisecondsToHz(T ms) { return ms ? 1000 / ms : 0; }
 
 
 protected:
+
+  
 
   /**
    * @brief Static function so Ticker can call member _loop().
    * This can be eliminated once Ticker accepts lambda functions
    * 
    */
-  static void _sISR(void *obj) final {
+  static void _sISR(void *obj) {
     ESPLedInterface *ptr = (ESPLedInterface *) obj;
     ptr->_loop();
   }
+
 
   /**
    * @brief This is called perodically and handles what needs
    * to be done to the LED. Override this for each strategy.
    * 
    */
-  virtual void _loop() = 0;  
+  virtual void _loop() = 0;
 
+
+  /**
+   * @brief Helper function to start periodic calls to _loop(). Call this
+   * when the first element of led_container_t is added.
+   * 
+   * 
+   */
+  void _startTicking();
+
+
+  /**
+   * @brief Helper function to stop periodic calls to _loop(). Call this
+   * when the last element of led_container_t is removed.
+   * 
+   * 
+   */
+  void _stopTicking();
+
+
+#ifdef ESP32
+
+  /**
+   * @brief Stops an ESP32 task from ending
+   * 
+   */
+  void _preventTaskEnd();
+
+#endif
 
 
  
 protected:
 
-  ESPLed *_led;                          // The LED to be acted on 
-  const unsigned long _tickInterval_ms;  // The interval at which to loop
+  typedef std::vector<ESPLed&> led_container_t;
+  led_container_t _leds;                          // The LED to be acted on 
+  
+  unsigned long _tickInterval_ms;  // The interval at which to loop
   bool _started : 1;
 
 #ifdef ESP32

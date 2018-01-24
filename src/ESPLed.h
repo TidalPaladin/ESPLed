@@ -128,15 +128,12 @@ public:
    * 
    * @return this
    */
-  template <class T>
-  ESPLed &setMode(const ESPLedInterface &strategy) {
-
-    // Forward a reference to this ESPLed object to the interface!!!!
+  ESPLed &setMode(ESPLedInterface &strategy) {
 
     if(_strategy != nullptr) { 
-      delete _strategy;     // This calls stop() from desctructor
+      stop();
     }
-    _strategy = &mode;
+    _strategy = &strategy;
     return *this;
 
   }
@@ -158,7 +155,7 @@ public:
    *   - true if the LED is on
    *   - false otherwise
    */
-  bool isOn() { return _isOn; }
+  bool isOn() const { return _isOn; }
   operator bool() const { return _isOn; }
 
 

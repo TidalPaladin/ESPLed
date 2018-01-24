@@ -12,19 +12,19 @@ ESPBlink &ESPBlink::duration(unsigned long ms) {
 }
 
 void ESPBlink::_loop() {
-  _led->on();
+  
+  for(auto i : _leds) {
+    i.on();
+  }
+
+  _blinkTick.once_ms(_duration_ms, )
   // _t.once_ms(_led.blinkDuration(), [this](){
   //   this->_led->off();
   // });
 
 
- #ifdef ESP32
-  TickType_t xLastWakeTime = xTaskGetTickCount(); // Initialize for delayUntil
-  
-  while(true){
-    const TickType_t xFrequency = self->_handle() / portTICK_PERIOD_MS;
-    vTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
+#ifdef ESP32
+  _preventTaskEnd();
 #endif
 
 

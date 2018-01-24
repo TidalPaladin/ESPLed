@@ -9,9 +9,9 @@ class ESPBlink : public ESPLedInterface {
 
 public:
 
-  ESPBlink(ESPLed *led)
+  ESPBlink()
   : 
-  ESPLedInterface(led, 100)
+  _tickInterval_ms(3000)
   {
     
   }
@@ -45,7 +45,7 @@ private:
   unsigned long _interval_ms = 3000;     // Interval on which to Pulse/blink
   unsigned long _duration_ms = 300;      // How long the led stays lit during a blink
 
-  Ticker _t;
+  Ticker _blinkTick;
 
 };
 

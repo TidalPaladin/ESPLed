@@ -69,14 +69,14 @@ ESPLed &ESPLed::toggle(uint8_t power) {
 
 ESPLed &ESPLed::start() {
   if(_strategy != nullptr){
-    _strategy->start();
+    _strategy->start(*this);
   }
   return *this;
 }
 
 ESPLed &ESPLed::stop() {
   if(_strategy != nullptr){
-    _strategy->stop();
+    _strategy->stop(*this);
   }
   return *this;
 }
