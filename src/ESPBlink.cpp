@@ -15,7 +15,7 @@ ESPBlink &ESPBlink::duration(unsigned long ms) {
 void ESPBlink::_loop() {
   
   for(auto i : _leds) {
-    i->on();
+    _handleLed(i);
   }
 
   //_blinkTick.once_ms(_duration_ms, )

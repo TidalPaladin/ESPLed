@@ -133,7 +133,19 @@ protected:
    * to be done to the LED. Override this for each strategy.
    * 
    */
-  virtual void _loop() = 0;
+  virtual void _loop();
+
+  /**
+   * @brief This is called from _loop() and applies the periodic
+   * action to an individual led.
+   * 
+   * @details _loop() should call this for each led in 
+   * led_container_t
+   * 
+   */
+  static virtual void _handleLed(ESPLed *const led) = 0;
+
+
 
 
   /**
