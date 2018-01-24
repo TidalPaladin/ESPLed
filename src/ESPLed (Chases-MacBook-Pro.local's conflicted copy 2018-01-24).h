@@ -23,6 +23,8 @@
 
 class ESPLed;
 class ESPLedInterface;
+class ESPPulse;
+class ESPBlink;
 
 
 /**
@@ -126,11 +128,24 @@ public:
    * 
    * @return this
    */
-  ESPLed &setMode(ESPLedInterface &strategy);
+  template <class T>
+  ESPLed &setMode(const ESPLedInterface &strategy) {
+
+    // Forward a reference to this ESPLed object to the interface!!!!
+
+    if(_strategy != nullptr) { 
+      stop();
+    }
+    _strategy = &strategy;
+    return *this;
+
+  }
 
 
   /**
    * @brief Starts or stops the LED's action for a given mode
+   * 
+   * @details Pass
    * 
    * @return this
    */
@@ -145,7 +160,7 @@ public:
    *   - true if the LED is on
    *   - false otherwise
    */
-  bool isOn() const { return _isOn; }
+  bool isOn() { return _isOn; }
   operator bool() const { return _isOn; }
 
 
@@ -193,14 +208,6 @@ protected:
    */
   uint16_t _mapToAnalog(uint8_t percent);
 
-
-  /**
-   * @brief Initializes the GPIO in the manner appropriate to the
-   * microcontroller and framework in use
-   * 
-   */
-  void _initPin();
-
 protected:
 
   const gpio_num_t _PIN;
@@ -222,17 +229,15 @@ protected:
   ESPLedInterface *_strategy;
   bool _isOn : 1;
 
+    
+private:
+
 };
 
-#endif
-
-
-
-/* Include files for the strategy pattern */
-#ifndef __ESPLED_INTERFACE_H__
 
 #include "ESPLedInterface.h"
 #include "ESPPulse.h"
 #include "ESPBlink.h"
+
 
 #endif

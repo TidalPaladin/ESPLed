@@ -1,5 +1,7 @@
 #include "ESPPulse.h"
-#ifdef __ESP_LED_H__
+#include "ESPLedInterface.h"
+#include "ESPLed.h"
+
 
 ESPPulse &ESPPulse::period(unsigned long ms){
   // Remember period is [0,2pi] because wave is offset to always be positive
@@ -20,6 +22,7 @@ ESPPulse &ESPPulse::refreshRate(unsigned int hz){
 
 
 void ESPPulse::_loop() {
+  /*
 
   const float sine_old = _sin(_theta_rads);
   _theta_rads = _theta_rads + _step_rads;
@@ -39,7 +42,10 @@ void ESPPulse::_loop() {
     const uint8_t outputWave = amplitude * sine + offset;
 
     // And turn the LED on using the percent brightness
-    _led->on(outputWave);
+    for(auto i : leds) {
+      i->on(outputWave);
+    }
+
   }
 
 #ifdef ESP32
@@ -49,6 +55,8 @@ void ESPPulse::_loop() {
     vTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
 #endif
+
+  */
 
 }
 
@@ -108,6 +116,3 @@ const float _sineLut[SINE_STEPS] PROGMEM = {
   0.9969173,	0.9980267,	0.9988899,	0.9995066,	0.9998766,
   1.0000000	
 };
-
-
-#endif

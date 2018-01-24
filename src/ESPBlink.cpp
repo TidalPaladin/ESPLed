@@ -1,5 +1,6 @@
 #include "ESPBlink.h"
-#ifdef __ESP_LED_H__
+#include "ESPLedInterface.h"
+#include "ESPLed.h"
 
 ESPBlink &ESPBlink::interval(unsigned long ms) {
   _interval_ms = ms;
@@ -14,10 +15,10 @@ ESPBlink &ESPBlink::duration(unsigned long ms) {
 void ESPBlink::_loop() {
   
   for(auto i : _leds) {
-    i.on();
+    i->on();
   }
 
-  _blinkTick.once_ms(_duration_ms, )
+  //_blinkTick.once_ms(_duration_ms, )
   // _t.once_ms(_led.blinkDuration(), [this](){
   //   this->_led->off();
   // });
@@ -29,8 +30,3 @@ void ESPBlink::_loop() {
 
 
 }
-
-
-
-
-#endif

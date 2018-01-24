@@ -19,7 +19,7 @@ ESPLed::ESPLed(const gpio_num_t pin, const uint8_t off_state)
 _PIN(pin),
 _RESTING(off_state)
 {
-  pinMode(pin, OUTPUT);
+  _initPin();
 }
 
 #endif
@@ -67,6 +67,16 @@ ESPLed &ESPLed::toggle(uint8_t power) {
   return *this;
 } 
 
+ESPLed &ESPLed::setMode(ESPLedInterface &s) {
+
+  if(_strategy != nullptr) { 
+    stop();
+  }
+  _strategy = &s;
+  return *this;
+
+}
+
 ESPLed &ESPLed::start() {
   if(_strategy != nullptr){
     _strategy->start(*this);
@@ -93,6 +103,14 @@ uint16_t ESPLed::_mapToAnalog(uint8_t percent){
   /* Account for LED where LOW = ON */
   return (_RESTING) ? ret : pwmRange() - ret;
   
+}
+
+void ESPLed::_initPin() {
+
+
+
+
+
 }
 
 

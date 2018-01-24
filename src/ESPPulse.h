@@ -1,19 +1,19 @@
 #ifndef __ESP_PULSE_H__
 #define __ESP_PULSE_H__
 
+#include "ESPLedInterface.h"
+
 #define SINE_STEPS  101
 
-#ifndef __LED_INTERFACE_H__
-#include "ESPLedInterface.h"
-#endif
+
 
 class ESPPulse : public ESPLedInterface {
 
 public:
 
-    ESPPulse(ESPLed *led)
+    ESPPulse()
     :
-    ESPLedInterface(led, 100)
+    ESPLedInterface(100)
     {
         
     }

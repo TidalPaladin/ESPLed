@@ -1,9 +1,8 @@
 #ifndef __ESP_BLINK_H__
 #define __ESP_BLINK_H__
 
-#ifndef __LED_INTERFACE_H__
 #include "ESPLedInterface.h"
-#endif
+
 
 class ESPBlink : public ESPLedInterface {
 
@@ -11,7 +10,7 @@ public:
 
   ESPBlink()
   : 
-  _tickInterval_ms(3000)
+  ESPLedInterface(1000)
   {
     
   }

@@ -12,17 +12,15 @@
  */
 
 
-#ifndef __LED_INTERFACE_H__
-#define __LED_INTERFACE_H__
+#ifndef __ESPLED_INTERFACE_H__
+#define __ESPLED_INTERFACE_H__
 
-#include <Arduino.h>
+#include "ESPLed.h"
 #include <Ticker.h>
 #include <vector>
 #include <algorithm>
+#include <Arduino.h>
 
-#ifndef __ESP_LED_H__
-class ESPLed;
-#endif
 
 class ESPLedInterface {
 
@@ -170,7 +168,7 @@ protected:
  
 protected:
 
-  typedef std::vector<ESPLed&> led_container_t;
+  typedef std::vector<ESPLed*> led_container_t;
   led_container_t _leds;                          // The LED to be acted on 
   
   unsigned long _tickInterval_ms;  // The interval at which to loop
@@ -184,6 +182,6 @@ protected:
 
 };
 
-//#include "ESPLed.h"
+
 
 #endif

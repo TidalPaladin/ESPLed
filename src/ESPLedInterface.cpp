@@ -1,9 +1,10 @@
 #include "ESPLedInterface.h"
 
 
+
 void ESPLedInterface::start(ESPLed &led) {
 
-    _leds.push_back(led);
+    _leds.push_back(&led);
 
     /* If we arent ticking, start */
     if( !_started) { 
@@ -15,7 +16,7 @@ void ESPLedInterface::start(ESPLed &led) {
 void ESPLedInterface::stop(ESPLed &led){
 
     /* Find the ESPLed that wants to be stopped */
-    auto i = std::find(_leds.begin(), _leds.end(), led);
+    auto i = std::find(_leds.begin(), _leds.end(), &led);
     if( i != _leds.cend() ) {
         _leds.erase(i);      // Remove it from the list
     }
