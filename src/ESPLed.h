@@ -198,8 +198,10 @@ protected:
    * @brief Initializes the GPIO in the manner appropriate to the
    * microcontroller and framework in use
    * 
+   * @pin The GPIO to initialize
+   * 
    */
-  void _initPin();
+  static void _initPin(gpio_num_t pin);
 
 protected:
 

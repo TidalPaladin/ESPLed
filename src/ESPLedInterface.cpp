@@ -4,7 +4,7 @@
 
 void ESPLedInterface::start(ESPLed &led) {
 
-    _leds.push_back(&led);
+    //=_leds.push_back(&led);
 
     /* If we arent ticking, start */
     if( !_started) { 
@@ -27,11 +27,33 @@ void ESPLedInterface::stop(ESPLed &led){
 }
 
 void ESPLedInterface::stopAll() {
-    _leds.clear();
     _stopTicking();
+    _leds.clear();
 }
 
 
+void ESPLedInterface::_loop() {
+    for(auto i : _leds) {
+        if( !_checkLedPointer(i) ) continue;
+        _handleLed(i);
+    }
+}
+
+
+bool ESPLedInterface::_checkLedPointer(ESPLed *const led) {
+
+    if(led != nullptr) return true;
+
+    const char* err = "Null pointer passed to _handleLed(), no action was taken";
+
+#ifdef ESPIDF
+    ESP_LOGW("ESPLedInterface", err);
+#else
+    Serial.println("ESPLedInterface",err);
+#endif
+    return false;
+
+}
 
 void ESPLedInterface::_startTicking() {
 

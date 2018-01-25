@@ -12,13 +12,12 @@ ESPBlink &ESPBlink::duration(unsigned long ms) {
   return *this;
 }
 
-void ESPBlink::_loop() {
-  
-  for(auto i : _leds) {
-    _handleLed(i);
-  }
 
-  //_blinkTick.once_ms(_duration_ms, )
+
+void ESPBlink::_handleLed(ESPLed *const led) {
+  
+  led->on();
+  _blinkTick.once_ms(_duration_ms, _sOff, (void*)this);
   // _t.once_ms(_led.blinkDuration(), [this](){
   //   this->_led->off();
   // });
@@ -29,4 +28,11 @@ void ESPBlink::_loop() {
 #endif
 
 
+}
+
+void ESPBlink::_sOff(void *blink) {
+  ESPBlink *ptr = (ESPBlink*) blink;
+  for(auto i : ptr->_leds) {
+    i->off();
+  }
 }

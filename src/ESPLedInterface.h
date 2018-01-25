@@ -49,12 +49,24 @@ public:
     stopAll();
   }
 
+
+  /**
+   * @brief Change the Ticking interval. This is the interval on which calls
+   * are made to _handleLed() for each attached ESPLed.
+   * 
+   * @param ms The new interval in milliseconds
+   * 
+   * @return this
+   */
+  ESPLedInterface &tickInterval(unsigned long ms) { _tickInterval_ms = ms; return *this; }
+  unsigned long tickInterval() const { return _tickInterval_ms; }
+
   /**
    * @brief Gets how many ESPLed objects are attached to this strategy
    * 
    * @return The number of attached ESPLed objects
    */
-  size_t attachedLedCount() { return _leds.size(); }
+  size_t attachedLedCount() const { return _leds.size(); }
 
   /**
    * @brief Start the periodic action for this strategy
@@ -129,24 +141,31 @@ protected:
 
 
   /**
-   * @brief This is called perodically and handles what needs
-   * to be done to the LED. Override this for each strategy.
+   * @brief Calls _handleLed() for each ESPLed in _leds
+   * 
    * 
    */
-  virtual void _loop();
+  virtual void _loop() final;
 
   /**
    * @brief This is called from _loop() and applies the periodic
    * action to an individual led.
    * 
    * @details _loop() should call this for each led in 
-   * led_container_t
+   * led_container_t. Here is where you put the code that
+   * describes the Led's action
    * 
+   * @param led The led to act on
    */
-  static virtual void _handleLed(ESPLed *const led) = 0;
+  virtual void _handleLed(ESPLed *const led) = 0;
 
 
-
+  /**
+   * @brief Checks an ESPLed pointer parameter for null pointer
+   * 
+   * @param led The pointer to check
+   */
+  static inline bool _checkLedPointer(ESPLed *const led);
 
   /**
    * @brief Helper function to start periodic calls to _loop(). Call this
@@ -169,7 +188,10 @@ protected:
 #ifdef ESP32
 
   /**
-   * @brief Stops an ESP32 task from ending
+   * @brief Threads on ESP32 must not return. This prevents the thread from
+   * returning.
+   * 
+   * @details Runs an infinite loop until the thread is ready to end
    * 
    */
   void _preventTaskEnd();

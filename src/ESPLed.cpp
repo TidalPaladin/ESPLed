@@ -19,7 +19,7 @@ ESPLed::ESPLed(const gpio_num_t pin, const uint8_t off_state)
 _PIN(pin),
 _RESTING(off_state)
 {
-  _initPin();
+  _initPin(_PIN);
 }
 
 #endif
@@ -105,10 +105,12 @@ uint16_t ESPLed::_mapToAnalog(uint8_t percent){
   
 }
 
-void ESPLed::_initPin() {
+void ESPLed::_initPin(gpio_num_t pin) {
 
 
-
+  #ifndef ESP32
+    pinMode(pin, OUTPUT);
+  #endif
 
 
 }

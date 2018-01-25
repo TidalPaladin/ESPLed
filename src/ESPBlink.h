@@ -37,7 +37,13 @@ public:
 
 protected:
   
-  virtual void _loop();
+  virtual void _handleLed(ESPLed *const led);
+
+  /**
+   * @brief Off ISR
+   * 
+   */
+  static void _sOff(void *blink);
 
 private:
 

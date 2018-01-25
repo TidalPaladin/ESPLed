@@ -44,7 +44,9 @@ public:
 protected:
 
     // Handle blinking, returns the time until the next action
-    virtual void _loop();
+    virtual void _handleLed(ESPLed *const led) = 0;
+
+    
 
 private:
 
