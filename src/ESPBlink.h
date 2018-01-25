@@ -10,7 +10,7 @@ public:
 
   ESPBlink()
   : 
-  ESPLedInterface(1000)
+  ESPLedInterface(3000)
   {
     
   }
@@ -40,14 +40,14 @@ protected:
   virtual void _handleLed(ESPLed *const led);
 
   /**
-   * @brief Off ISR
+   * @brief Call this from _handleLed() to turn off the led
    * 
    */
   static void _sOff(void *blink);
 
 private:
 
-  unsigned long _interval_ms = 3000;     // Interval on which to Pulse/blink
+  //unsigned long _interval_ms = 3000;     // Interval on which to Pulse/blink
   unsigned long _duration_ms = 300;      // How long the led stays lit during a blink
 
   Ticker _blinkTick;

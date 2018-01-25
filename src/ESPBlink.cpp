@@ -3,7 +3,7 @@
 #include "ESPLed.h"
 
 ESPBlink &ESPBlink::interval(unsigned long ms) {
-  _interval_ms = ms;
+  ESPLedInterface::tickInterval(ms);
   return *this;   
 }
 

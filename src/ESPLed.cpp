@@ -44,22 +44,22 @@ ESPLed &ESPLed::minBrightness(uint8_t percent){
 ESPLed &ESPLed::on(uint8_t percent) {
   _isOn = true;
   percent = constrain(percent, minBrightness(), maxBrightness());
-#ifdef ESP32
-  ledcWrite( channel(), _mapToAnalog(percent));
-#else
-  analogWrite( pin(), _mapToAnalog(percent) );
-#endif
+  _writePwm( _mapToAnalog(percent) );
   return *this;
 }
 
 ESPLed &ESPLed::off() {
   _isOn = false;
-#ifdef ESP32
-  ledcWrite( channel(), _mapToAnalog(minBrightness()) );
-#else
-  analogWrite( pin(), _mapToAnalog(minBrightness()) );
-#endif
+  _writePwm( _mapToAnalog(minBrightness()) );
   return *this;
+}
+
+void ESPLed::_writePwm(uint16_t pwm) {
+#ifdef ESP32
+  ledcWrite( channel(), pwm);
+#else
+  analogWrite( pin(), pwm) );
+#endif
 }
 
 ESPLed &ESPLed::toggle(uint8_t power) { 

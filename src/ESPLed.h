@@ -203,6 +203,13 @@ protected:
    */
   static void _initPin(gpio_num_t pin);
 
+  /**
+   * @brief Helper function to write duty cycles between ESP32 and ESP8266
+   * 
+   * @param pwm The pwm value to write to the led
+   */
+  void _writePwm(uint16_t pwm);
+
 protected:
 
   const gpio_num_t _PIN;
