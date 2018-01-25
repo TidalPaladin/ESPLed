@@ -21,46 +21,41 @@ ESPPulse &ESPPulse::refreshRate(unsigned int hz){
 }
 
 
-void ESPPulse::_loop() {
-  /*
+void ESPPulse::_loop() { 
 
-  const float sine_old = _sin(_theta_rads);
-  _theta_rads = _theta_rads + _step_rads;
+  /* Increment theta by the step size */
+  _theta_rads += _step_rads;
 
+  /* Calculate the sine of the new theta */
+  const float NEW_SINE = _sin(_theta_rads);
 
-  const float sine = _sin(_theta_rads);
+  /* Ignore steps in theta that are too small for the LUT to resolve */
+  if( NEW_SINE == _currentSine ) {
+    return;
+  }
 
+  /* If sin(theta) changed, alter member variable */
+  _currentSine = NEW_SINE;
+
+  /* Always call parent _loop() at the end */
+  ESPLedInterface::_loop();
   
-  // Calculate amplitude and offset for a sine wave between max and min
-  const uint8_t offset = (_led->maxBrightness() + _led->minBrightness()) / 2;
-  const uint8_t amplitude = _led->maxBrightness() - offset;
-
-  if( uint8_t(amplitude * sine_old) != uint8_t(amplitude * sine)) {
-
-    // Calculate brightness using a sine wave
-    
-    const uint8_t outputWave = amplitude * sine + offset;
-
-    // And turn the LED on using the percent brightness
-    for(auto i : leds) {
-      i->on(outputWave);
-    }
-
-  }
-
-#ifdef ESP32
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-  while(true){
-    const TickType_t xFrequency = self->_handle() / portTICK_PERIOD_MS;
-    vTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
-#endif
-
-  */
-
 }
 
 
+void ESPPulse::_handleLed(ESPLed *const led) {
+
+  /* Calculate A and O for f(x) = A * sin(x) + O */
+  /* TODO We can probably find a way to not calculate this on every call */
+  const uint8_t OFFSET = (led->maxBrightness() + led->minBrightness()) / 2;
+  const uint8_t AMPLITUDE = led->maxBrightness() - OFFSET;
+
+  /* Find the value of f(x) = A * sin(x) + O */
+  const uint8_t PERCENT_BRIGHTNESS = AMPLITUDE * _currentSine + OFFSET;
+
+  led->on(PERCENT_BRIGHTNESS);
+
+}
 
 float ESPPulse::_sin(float theta){
 
@@ -71,9 +66,13 @@ float ESPPulse::_sin(float theta){
     const int8_t sign = (theta >= PI) ? -1 : 1;
 
     /* Is theta in quadrant 2 or 4 */
-    const bool QUAD_2_4 = 
-      (theta > HALF_PI && theta < PI)
-      || (theta > 3/2 * HALF_PI && theta < TWO_PI);
+
+    const bool QUAD_2_4 = (theta > HALF_PI) ^ (theta > 3 * HALF_PI / 2);
+    // const bool QUAD_2_4 = 
+    //   (theta > HALF_PI && theta < PI)
+    //   || (theta > 3/2 * HALF_PI && theta < TWO_PI);
+
+    
 
     /* How far from beginning or end of table to read */
     const uint8_t OFFSET = (SINE_STEPS - 1) * theta / HALF_PI;

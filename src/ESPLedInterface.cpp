@@ -37,6 +37,12 @@ void ESPLedInterface::_loop() {
         if( !_checkLedPointer(i) ) continue;
         _handleLed(i);
     }
+
+
+#ifdef ESP32
+    _preventTaskEnd();
+#endif
+
 }
 
 
@@ -49,7 +55,7 @@ bool ESPLedInterface::_checkLedPointer(ESPLed *const led) {
 #ifdef ESPIDF
     ESP_LOGW("ESPLedInterface", err);
 #else
-    Serial.println("ESPLedInterface",err);
+    Serial.printf("ESPLedInterface: %s\n", err);
 #endif
     return false;
 

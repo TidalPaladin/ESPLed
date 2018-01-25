@@ -13,7 +13,8 @@ public:
 
     ESPPulse()
     :
-    ESPLedInterface(100)
+    ESPLedInterface(100),
+    _currentSine(0)
     {
         
     }
@@ -43,7 +44,14 @@ public:
 
 protected:
 
-    // Handle blinking, returns the time until the next action
+    virtual void _loop();
+
+    /**
+     * @brief Applies the calculated led brightness to all attached ESPLeds
+     * 
+     * @param led A member of ESPLedInterface::_leds
+     * 
+     */
     virtual void _handleLed(ESPLed *const led) = 0;
 
     
@@ -65,6 +73,8 @@ private:
     unsigned int _refreshRate_hz = 60;   // Refresh rate for pulse mode
     float _theta_rads = PI;              // Current value of theta
     float _step_rads = PI;               // Incremental change of theta
+
+    float _currentSine;                 // Track sin(theta) separately 
 
     static const float _sineLut[SINE_STEPS];
 

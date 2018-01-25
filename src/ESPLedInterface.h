@@ -143,9 +143,13 @@ protected:
   /**
    * @brief Calls _handleLed() for each ESPLed in _leds
    * 
+   * @details You can override this in derived classes if you
+   * need to add behaviors before the call to _handleLed(). Just make
+   * sure that you call ESPLedInterface::_loop() at the end of your overload
+   * 
    * 
    */
-  virtual void _loop() final;
+  virtual void _loop();
 
   /**
    * @brief This is called from _loop() and applies the periodic
