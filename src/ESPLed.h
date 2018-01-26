@@ -20,6 +20,8 @@
 #include <Ticker.h>
 #endif
 
+#include "ESPLookupTable.h"
+
 
 class ESPLed;
 class ESPLedInterface;

@@ -23,7 +23,7 @@ public:
    * @return this
    */
   ESPBlink &interval(unsigned long ms);
-  unsigned long interval() const { return _interval_ms; }
+  unsigned long interval() const { return tickInterval(); }
   
   /**
    * @brief Sets how long the LED stays on for during a blink

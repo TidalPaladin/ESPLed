@@ -41,6 +41,14 @@ ESPLed &ESPLed::minBrightness(uint8_t percent){
   return *this;
 } 
 
+void ESPLed::_writePwm(uint16_t pwm) {
+#ifdef ESP32
+  ledcWrite( channel(), pwm);
+#else
+  analogWrite( pin(), pwm );
+#endif
+}
+
 ESPLed &ESPLed::on(uint8_t percent) {
   _isOn = true;
   percent = constrain(percent, minBrightness(), maxBrightness());
@@ -54,13 +62,7 @@ ESPLed &ESPLed::off() {
   return *this;
 }
 
-void ESPLed::_writePwm(uint16_t pwm) {
-#ifdef ESP32
-  ledcWrite( channel(), pwm);
-#else
-  analogWrite( pin(), pwm) );
-#endif
-}
+
 
 ESPLed &ESPLed::toggle(uint8_t power) { 
   isOn() ? off() : on(power); 

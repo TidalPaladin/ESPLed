@@ -2,6 +2,7 @@
 #define __ESP_PULSE_H__
 
 #include "ESPLedInterface.h"
+#include "ESPLookupTable.h"
 
 #define SINE_STEPS  101
 
@@ -44,6 +45,10 @@ public:
 
 protected:
 
+    /**
+     * @brief Override to calculate sin(theta) once for each tick
+     * 
+     */
     virtual void _loop();
 
     /**
@@ -52,7 +57,7 @@ protected:
      * @param led A member of ESPLedInterface::_leds
      * 
      */
-    virtual void _handleLed(ESPLed *const led) = 0;
+    virtual void _handleLed(ESPLed *const led);
 
     
 
@@ -68,6 +73,13 @@ private:
      */
     float _sin(float theta);
 
+
+    /**
+     * @brief Populates a sine lookup table at compile time
+     * 
+     */
+    void _createSineLookup();
+
 private:
 
     unsigned int _refreshRate_hz = 60;   // Refresh rate for pulse mode
@@ -78,6 +90,11 @@ private:
 
     static const float _sineLut[SINE_STEPS];
 
+    static constexpr ESPSineLookupTable<360> _lut = ESPSineLookupTable<360>();
+    //double test = _lut[0];
+    // static_assert( _lut[0] == 0, "Something wrong with sine lookup table!");
+
+    
 };
 
 #endif

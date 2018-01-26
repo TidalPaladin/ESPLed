@@ -25,10 +25,6 @@ void ESPBlink::_handleLed(ESPLed *const led) {
   // });
 
 
-#ifdef ESP32
-  _preventTaskEnd();
-#endif
-
 
 }
 

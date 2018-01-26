@@ -115,6 +115,7 @@ void ESPLedInterface::_preventTaskEnd() {
         const TickType_t xFrequency = _tickInterval_ms / portTICK_PERIOD_MS;
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
+
 }
 
 #endif
