@@ -2,7 +2,6 @@
 #include "ESPLedInterface.h"
 #include "ESPLed.h"
 
-constexpr ESPSineLookupTable<360> ESPPulse::_lut;
 
 ESPPulse &ESPPulse::period(unsigned long ms){
   // Remember period is [0,2pi] because wave is offset to always be positive

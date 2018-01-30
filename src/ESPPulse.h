@@ -2,7 +2,6 @@
 #define __ESP_PULSE_H__
 
 #include "ESPLedInterface.h"
-#include "ESPLookupTable.h"
 
 #define SINE_STEPS  101
 
@@ -90,9 +89,6 @@ private:
 
     static const float _sineLut[SINE_STEPS];
 
-    static constexpr ESPSineLookupTable<360> _lut = ESPSineLookupTable<360>();
-    //double test = _lut[0];
-    // static_assert( _lut[0] == 0, "Something wrong with sine lookup table!");
 
     
 };
