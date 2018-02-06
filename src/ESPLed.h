@@ -12,6 +12,8 @@
 #define __ESPLED_H__
 
 #include <Arduino.h>
+#include <assert.h>
+
 
 /*
   Ticking handled using RTOS tasks for ESP32
@@ -20,19 +22,13 @@
 #include <Ticker.h>
 #endif
 
-
+#include "PwmGpio.h"
+#include "ESPBrightnessRange.h"
 
 class ESPLed;
 class ESPLedInterface;
 
 
-/**
- * Provides access to pwm_range
- * TODO Can these be class members?
- */
-
-extern uint32_t pwm_range;
-extern uint32_t pwm_freq;
 
 /**
  * Provides pin definitions 
@@ -69,22 +65,22 @@ public:
   ~ESPLed();
 
   /**
-   * @brief Gets the GPIO to which this LED is attached
+   * @brief Gets the GPIO of the ESPLed
    * 
-   * @return The GPIO
+   * @return GPIO number
    */
-  gpio_num_t pin() const { return _PIN; }
+  gpio_num_t pin() const { return _gpio.pin(); }
 
 
-  /**
+  /** 
    * @brief Sets the maximum LED brightness as a percentage
    * 
    * @param percent The percentage from 0-100
    * 
    * @return this
    */
-  ESPLed &maxBrightness(uint8_t percent);
-  uint8_t maxBrightness() const { return _brightness.max; }
+  ESPLed &maxBrightness(uint8_t percent); 
+  uint8_t maxBrightness() const { return _brightnessRange.maxBrightnessPercent(); }
 
   /**
    * @brief Sets the minimum LED brightness as a percentage. This
@@ -92,33 +88,12 @@ public:
    * 
    * @param percent The percentage from 0-100
    * 
-   * @return this
+   * @return this 
    */
   ESPLed &minBrightness(uint8_t percent);
-  uint8_t minBrightness() const { return _brightness.min; }
+  uint8_t minBrightness() const { return _brightnessRange.minBrightnessPercent(); }
 
-#ifdef ESP32
-  
-  /**
-   * @brief Gets which of the 16 PWM channels is in use on
-   * ESP32
-   * 
-   * 
-   * @return The channel
-   */
-  uint8_t channel() const { return _CHANNEL_32; }
 
-  
-  /**
-   * @brief Gets the frequency of the PWM signal in Hz on
-   * ESP32
-   * 
-   * 
-   * @return The frequency in Hz
-   */
-  unsigned long frequency() const { return _gpio.freq; }
-
-#endif
 
   /**
    * @brief Assigns a strategy to the ESPLed
@@ -151,6 +126,13 @@ public:
 
 
   /**
+   * @brief Gets whether the LED is on or off when the GPIO is high
+   * 
+   * @return true if LED is on when GPIO is high, false otherwise
+   */
+  bool highIsOn() const { return _highIsOn; }
+
+  /**
    * @brief Turns the LED on to a given brightness
    * 
    * @param percent The brigness to turn on to
@@ -175,59 +157,14 @@ public:
    */
   ESPLed &toggle(uint8_t percent = 100);
 
-
-  static uint32_t pwmRange() { return pwm_range; }
-  static uint32_t pwmFreq() { return pwm_freq; }
-
+  
 
 protected:
 
-  /**
-   * @brief Maps a brightness from a percentage to a PWM value. 
-   * 
-   * @details Includes compensation for the antilog nature of brightness.
-   * Conversion is done using a lookup table.
-   * 
-   * @param percent The brightness from 0-100
-   * 
-   * @return The PWM value
-   */
-  uint16_t _mapToAnalog(uint8_t percent);
 
-
-  /**
-   * @brief Initializes the GPIO in the manner appropriate to the
-   * microcontroller and framework in use
-   * 
-   * @pin The GPIO to initialize
-   * 
-   */
-  static void _initPin(gpio_num_t pin);
-
-  /**
-   * @brief Helper function to write duty cycles between ESP32 and ESP8266
-   * 
-   * @param pwm The pwm value to write to the led
-   */
-  void _writePwm(uint16_t pwm);
-
-protected:
-
-  const gpio_num_t _PIN;
-  const uint8_t _RESTING : 1;
-
-#ifdef ESP32
-  const uint16_t _FREQUENCY_32 = 5000;
-  const uint8_t _CHANNEL_32 : 4;  // 16 channels
-  const uint8_t resolution : 4;  // Use 10 bit resolution to match default for ESP8266
-#endif
-
-  static const uint16_t _brightnessLut[101];
-
-  struct {
-    uint8_t max : 7; // The analogWrite() maximum
-    uint8_t min : 7;
-  } _brightness;
+  ESPPwmGpio _gpio;
+  bool _highIsOn : 1;
+  ESPLedBrightness _brightnessRange;
 
   ESPLedInterface *_strategy;
   bool _isOn : 1;

@@ -3,7 +3,7 @@
 #include "ESPPulse.h"
 
 // Antilog percent to [0,1023] lookup table
-const uint16_t ESPLed::_brightnessLut[101] PROGMEM = {
+const uint16_t ESPLedBrightness::_brightnessLut[101] PROGMEM = {
   0x000,	0x002,	0x004,	0x007,	0x009,
   0x00b,	0x00e,	0x010,	0x012,	0x015,
   0x017,	0x01a,	0x01c,	0x01f,	0x021,

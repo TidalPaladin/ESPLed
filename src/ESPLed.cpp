@@ -5,21 +5,20 @@
 
 ESPLed::ESPLed(const gpio_num_t pin, const uint8_t channel, uint16_t freq_hz, const uint8_t off_state)
 :
-_PIN(pin),
-_CHANNEL_32(channel,
-_RESTING(off_state)
+_gpio(pin, channel, freq_hz)
+_highIsOn(off_state != HIGH ? true : false)
 {
-
-}
+  _gpio.initialize();
+} 
 
 #else
 
 ESPLed::ESPLed(const gpio_num_t pin, const uint8_t off_state)
 :
-_PIN(pin),
-_RESTING(off_state)
+_gpio(pin),
+_highIsOn(off_state != HIGH ? true : false)
 {
-  _initPin(_PIN);
+  _gpio.initialize();
 }
 
 #endif
@@ -32,33 +31,29 @@ ESPLed::~ESPLed() {
 
 
 ESPLed &ESPLed::maxBrightness(uint8_t percent) {
-  _brightness.max = percent;
+  _brightnessRange.maxBrightnessPercent(percent);
   return *this;
 }
 
 ESPLed &ESPLed::minBrightness(uint8_t percent){
-  _brightness.min = percent;
+  _brightnessRange.minBrightnessPercent(percent);
   return *this;
 } 
 
-void ESPLed::_writePwm(uint16_t pwm) {
-#ifdef ESP32
-  ledcWrite( channel(), pwm);
-#else
-  analogWrite( pin(), pwm );
-#endif
-}
+
 
 ESPLed &ESPLed::on(uint8_t percent) {
-  _isOn = true;
   percent = constrain(percent, minBrightness(), maxBrightness());
-  _writePwm( _mapToAnalog(percent) );
+  uint16_t analog_value = ESPLedBrightness::percentToAnalog(percent);
+  _gpio.analogWrite(analog_value);
+
+  _isOn = true;
   return *this;
 }
 
 ESPLed &ESPLed::off() {
+  this->on(0); 
   _isOn = false;
-  _writePwm( _mapToAnalog(minBrightness()) );
   return *this;
 }
 
@@ -94,28 +89,9 @@ ESPLed &ESPLed::stop() {
 }
 
 
-uint16_t ESPLed::_mapToAnalog(uint8_t percent){
-
-  /* First look up the value on a 10 bit scale */
-  uint16_t ret = pgm_read_word(_brightnessLut + percent);
-
-  /* Then map from 10 bit scale to PWM_RANGE */
-  ret = map(ret, 0, 1023, 0, pwmRange());
-
-  /* Account for LED where LOW = ON */
-  return (_RESTING) ? ret : pwmRange() - ret;
-  
-}
-
-void ESPLed::_initPin(gpio_num_t pin) {
 
 
-  #ifndef ESP32
-    pinMode(pin, OUTPUT);
-  #endif
 
-
-}
 
 
 

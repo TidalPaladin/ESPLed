@@ -16,7 +16,7 @@
 #define __ESPLED_INTERFACE_H__
 
 #include "ESPLed.h"
-#include <Ticker.h>
+#include "ESPEventChain.h"
 #include <vector>
 #include <algorithm>
 #include <Arduino.h>
@@ -80,7 +80,9 @@ public:
   void start(ESPLed &led);
 
   /**
-   * @brief Stop the periodic action for this strategy
+   * @brief Stop acting on a given led
+   * 
+   * @param led The ESPLed to stop acting on
    * 
    */
   void stop(ESPLed &led);
@@ -112,7 +114,9 @@ public:
    * @return The period of the wave in milliseconds
    */
   template <typename T>
-  static inline T hzToMilliseconds(T hz) { return hz ? 1000 / hz : 0; }
+  static constexpr T hzToMilliseconds(T hz) { 
+    return hz ? 1000 / hz : 0; 
+  }
 
   /**
    * @brief Converts a period in milliseconds to a frequency in Hz
@@ -122,7 +126,9 @@ public:
    * @return The frequency of the wave in hertz
    */
   template <typename T>
-  static inline T millisecondsToHz(T ms) { return ms ? 1000 / ms : 0; }
+  static constexpr T millisecondsToHz(T ms) { 
+    return hzToMilliseconds(ms);  // The equations are identical
+  }
 
 
 protected:
@@ -136,6 +142,7 @@ protected:
    */
   static void _sISR(void *obj) {
     ESPLedInterface *ptr = (ESPLedInterface *) obj;
+    assert(ptr != nullptr);
     ptr->_loop();
   }
 
@@ -207,16 +214,12 @@ protected:
 protected:
 
   typedef std::vector<ESPLed*> led_container_t;
-  led_container_t _leds;                          // The LED to be acted on 
+  led_container_t _leds;
+  EspEventChain _eventChain;
   
   unsigned long _tickInterval_ms;  // The interval at which to loop
   bool _started : 1;
 
-#ifdef ESP32
-  TaskHandle_t _taskHandle = NULL;
-#else
-  Ticker _tick;
-#endif
 
 };
 

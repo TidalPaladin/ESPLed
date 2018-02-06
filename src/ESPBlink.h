@@ -16,9 +16,10 @@ public:
   }
 
   /**
-   * @brief Sets the interval between blinks
+   * @brief Sets the interval between the beginning of subsequent blinks.
    * 
-   * @param ms The time in ms between blinks
+   * @param ms The time in milliseconds between blinks
+   * @pre ms > 0
    * 
    * @return this
    */
@@ -29,6 +30,7 @@ public:
    * @brief Sets how long the LED stays on for during a blink
    * 
    * @param ms The time in milliseconds
+   * @pre 0 < ms < interval()
    * 
    * @return this
    */
@@ -37,6 +39,12 @@ public:
 
 protected:
   
+  /**
+   * @brief Overload to make a ESPLed blink
+   * 
+   * @param led A reference to the led to act on
+   * 
+   */
   virtual void _handleLed(ESPLed *const led);
 
   /**
@@ -47,7 +55,6 @@ protected:
 
 private:
 
-  //unsigned long _interval_ms = 3000;     // Interval on which to Pulse/blink
   unsigned long _duration_ms = 300;      // How long the led stays lit during a blink
 
   Ticker _blinkTick;

@@ -4,11 +4,12 @@
 
 void ESPLedInterface::start(ESPLed &led) {
 
-    //=_leds.push_back(&led);
+    /* Add a reference to the new ESPLed to our list */
+    _leds.push_back(&led);
 
     /* If we arent ticking, start */
     if( !_started) { 
-        _startTicking();
+        _eventChain.start();
     }
 
 }
@@ -22,12 +23,12 @@ void ESPLedInterface::stop(ESPLed &led){
     }
 
     /* If the list is now empty, we can stop ticking */
-    if( _leds.empty() ) { _stopTicking(); }
+    if( _leds.empty() ) { _eventChain.stop(); }
 
 }
 
 void ESPLedInterface::stopAll() {
-    _stopTicking();
+    _eventChain.stop();
     _leds.clear();
 }
 
@@ -61,63 +62,9 @@ bool ESPLedInterface::_checkLedPointer(ESPLed *const led) {
 
 }
 
-void ESPLedInterface::_startTicking() {
-
-#ifdef ESP32
-    
-    xTaskCreate(
-        _loop,    // Function
-        "Led Task",     // Name
-        1000,           // Stack size in words
-        (void*)this,    // Parameter
-        1,              // Task priority
-        &_taskHandle    // Task handle
-    );
-  
-#else
-
-    /*  Use this once Ticker can use lambda functions
-
-    _tick.attach_ms(_tickInterval, [this](){
-        this->_loop();
-    });
-    
-    */
-    _tick.attach_ms(_tickInterval_ms, _sISR, (void*)this);
-    
-#endif
-
-    _started = true;
-
-}
-
-void ESPLedInterface::_stopTicking() {
-
-#ifdef ESP32
-    vTaskDelete(_taskHandle);
-#else
-    _tick.detach();
-#endif
-
-    _started = false;
-
-}
 
 
 
-#ifdef ESP32
 
-void ESPLedInterface::_preventTaskEnd() {
-
-    TickType_t xLastWakeTime = xTaskGetTickCount(); // Initialize for delayUntil
-
-    while(true){
-        const TickType_t xFrequency = _tickInterval_ms / portTICK_PERIOD_MS;
-        vTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
-
-}
-
-#endif
 
 

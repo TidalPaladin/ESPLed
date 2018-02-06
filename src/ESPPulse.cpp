@@ -73,7 +73,6 @@ float ESPPulse::_sin(float theta){
     //   || (theta > 3/2 * HALF_PI && theta < TWO_PI);
 
     
-
     /* How far from beginning or end of table to read */
     const uint8_t OFFSET = (SINE_STEPS - 1) * theta / HALF_PI;
 
