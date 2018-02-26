@@ -42,14 +42,6 @@ void ESPLedInterface::resumeAll() {
         _eventChain.start();
 }
 
-void ESPLedInterface::_forEachLed(foreach_t f) {
-    for(auto led : _leds) {
-        if(led != nullptr && f) {
-            f(led); 
-        }
-    } 
-}
-
 bool ESPLedInterface::_checkLedPointer(ESPLed *const led) {
 
     if(led != nullptr) return true;
