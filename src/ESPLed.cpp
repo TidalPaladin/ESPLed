@@ -24,7 +24,7 @@ _highIsOn(off_state != HIGH ? true : false)
 #endif
 
 ESPLed::~ESPLed() {
-  if(_strategy != nullptr) delete _strategy;
+  stop();
   minBrightness(0);
   off();
 }
@@ -44,6 +44,10 @@ ESPLed &ESPLed::minBrightness(uint8_t percent){
 
 ESPLed &ESPLed::on(uint8_t percent) {
   percent = constrain(percent, minBrightness(), maxBrightness());
+  if( !highIsOn() ) {
+    percent = 100 - percent;
+  }
+
   uint16_t analog_value = ESPLedBrightness::percentToAnalog(percent);
   _gpio.analogWrite(analog_value);
 
@@ -65,13 +69,9 @@ ESPLed &ESPLed::toggle(uint8_t power) {
 } 
 
 ESPLed &ESPLed::setMode(ESPLedInterface &s) {
-
-  if(_strategy != nullptr) { 
-    stop();
-  }
+  if( active() ) stop();
   _strategy = &s;
   return *this;
-
 }
 
 ESPLed &ESPLed::start() {
@@ -82,10 +82,14 @@ ESPLed &ESPLed::start() {
 }
 
 ESPLed &ESPLed::stop() {
-  if(_strategy != nullptr){
+  if( active() ) {
     _strategy->stop(*this);
   }
   return *this;
+}
+
+bool ESPLed::active() const {
+  return (_strategy != nullptr) && ( _strategy->isStarted() ); 
 }
 
 

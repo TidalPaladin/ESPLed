@@ -2,6 +2,7 @@
 #include "ESPLedInterface.h"
 #include "ESPLed.h"
 
+#if FALSE
 
 ESPPulse &ESPPulse::period(unsigned long ms){
   // Remember period is [0,2pi] because wave is offset to always be positive
@@ -114,3 +115,4 @@ const float _sineLut[SINE_STEPS] PROGMEM = {
   0.9969173,	0.9980267,	0.9988899,	0.9995066,	0.9998766,
   1.0000000	
 };
+#endif

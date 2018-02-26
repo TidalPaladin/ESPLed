@@ -1,5 +1,12 @@
 #include "ESPEventChain.h"
 
+EspEventChain::EspEventChain(size_t num_events)
+:
+_events(num_events) // Reserve vector space
+{
+
+}
+
 unsigned long EspEvent::runEvent() const {
     if(!_callback) return 0;
 
@@ -10,22 +17,13 @@ unsigned long EspEvent::runEvent() const {
 
 EspEvent &EspEvent::setTime(unsigned long ms) {
     if( ms == 0) panic();
+    Serial.println("Changed time REAL");
     _time_ms = ms;
     return *this;
 }
 
-EspEventChain &EspEventChain::timeBetweenChainRepeats(unsigned long ms) {
-
-    if(ms <= 0) panic();
-
-    _timeBetweenRepeats_ms = ms;
-    return *this;
-}
-
-EspEventChain &EspEventChain::absoluteTimeBetweenChainRepeats(unsigned long ms) {
-    if(ms <= 0) panic();
-
-    _timeBetweenRepeats_ms = ms;
+EspEvent &EspEvent::setCallback(callback_t &callback) {
+    _callback = callback;
     return *this;
 }
 
@@ -34,28 +32,27 @@ unsigned long EspEventChain::totalTime() const {
 }
 
 unsigned long EspEventChain::totalTimeBefore(size_t index) const {
+    if( index == 0 || index >= numEvents() ) panic();
 
-    citerator_t begin = _events.cbegin();
-    citerator_t end = _events.cbegin();
-    std::advance(end, index);
+    index--;
+    unsigned long total = 0;
     
-    
-    return std::accumulate(
-        begin,
-        end,
-        0,
-        [](unsigned long a, EspEvent b){
-            return a + b.getTime();
-        }
-    );
-
+    while(index >= 0) {
+        total += getTimeOf(index);
+    }
+    return total;
 } 
+
+unsigned long EspEventChain::getTimeOf(size_t pos) const {
+    if( pos >= numEvents() ) panic();
+
+    return _events.at(pos).getTime();
+}
 
 void EspEventChain::start() {
     reset();
     handleTick();
     _started = true;
-
 }
 
 void EspEventChain::stop() {
@@ -76,24 +73,42 @@ void EspEventChain::stop() {
 
 void EspEventChain::sHandleTick(void *ptr) {
     EspEventChain *pChain = (EspEventChain*)ptr;
+    if(pChain == nullptr) panic();
+
     pChain->handleTick();
 
-#ifdef ESP32
-    preventTaskEnd();
-#endif
+
 
 }
 
 void EspEventChain::handleTick() {
-    _currentEvent->runEvent();
-    scheduleNextEvent();
+    unsigned long time_for_callback = _currentEvent->runEvent();
+    unsigned long delay = scheduleNextEvent(time_for_callback);
+
+#ifdef ESP32
+    preventTaskEnd(delay);
+#endif
 }
 
-void EspEventChain::scheduleNextEvent() {
-    _currentEvent++;
-    if( !validCurrentEvent() ) {
-        reset();
+
+void EspEventChain::advanceToNextCallable() {
+
+    const citerator_t INITIAL_POS = _currentEvent++;
+    if( atEndOfChain() ) { reset(); }
+
+    while( !validCurrentEvent() && !atEndOfChain() ) {
+        _currentEvent++;
     }
+
+    if( !validCurrentEvent() )
+        stop();
+}
+
+unsigned long EspEventChain::scheduleNextEvent(unsigned long offset_ms) {
+    advanceToNextCallable();
+    unsigned long delay = _currentEvent->getTime();
+
+    delay -= ( offset_ms <= delay ? offset_ms : delay); 
 
 #ifdef ESP32
     
@@ -108,21 +123,21 @@ void EspEventChain::scheduleNextEvent() {
   
 #else
 
-   _tick.once_ms(_currentEvent->getTime(), sHandleTick, (void*)this);
+   _tick.once_ms(delay, sHandleTick, (void*)this);
 
 #endif   
+
+    return delay;
 }
 
 
-
-
 #ifdef ESP32
-void EspEventChain::preventTaskEnd() {
+void EspEventChain::preventTaskEnd(unsigned long howLong_ms) {
 
     TickType_t xLastWakeTime = xTaskGetTickCount(); // Initialize for delayUntil
 
     while(true){
-        const TickType_t xFrequency = _tickInterval_ms / portTICK_PERIOD_MS;
+        const TickType_t xFrequency = howLong_ms / portTICK_PERIOD_MS;
         vTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 

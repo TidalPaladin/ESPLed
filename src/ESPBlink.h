@@ -9,10 +9,17 @@ class ESPBlink : public ESPLedInterface {
 public:
 
   ESPBlink()
-  : 
-  ESPLedInterface(3000)
+  :
+  ESPLedInterface(2)  // 2 events for blinking
   {
-    
+
+    _addEvent(2000, [this]() {
+      this->turnOn();
+    });
+
+    _addEvent(300, [this]() {
+      this->turnOff();
+    });
   }
 
   /**
@@ -24,7 +31,7 @@ public:
    * @return this
    */
   ESPBlink &interval(unsigned long ms);
-  unsigned long interval() const { return tickInterval(); }
+  unsigned long interval() const { return _eventChain.getTimeOf(0); }
   
   /**
    * @brief Sets how long the LED stays on for during a blink
@@ -35,29 +42,26 @@ public:
    * @return this
    */
   ESPBlink &duration(unsigned long ms);
-  unsigned long duration() const { return _duration_ms;}
+  unsigned long duration() const { return _eventChain.getTimeOf(1); }
+
+
+
+
 
 protected:
-  
-  /**
-   * @brief Overload to make a ESPLed blink
-   * 
-   * @param led A reference to the led to act on
-   * 
-   */
-  virtual void _handleLed(ESPLed *const led);
 
-  /**
-   * @brief Call this from _handleLed() to turn off the led
-   * 
-   */
-  static void _sOff(void *blink);
+  void turnOn() {
+    _forEachLed( [](ESPLed *led) {
+      led->on();
+    });
+  }
 
-private:
+  void turnOff() {
+    _forEachLed( [](ESPLed *led) {
+      led->off();
+    });
+  }
 
-  unsigned long _duration_ms = 300;      // How long the led stays lit during a blink
-
-  Ticker _blinkTick;
 
 };
 

@@ -1,6 +1,6 @@
 #ifndef __ESP_PULSE_H__
 #define __ESP_PULSE_H__
-
+#if FALSE
 #include "ESPLedInterface.h"
 
 #define SINE_STEPS  101
@@ -93,4 +93,5 @@ private:
     
 };
 
+#endif
 #endif

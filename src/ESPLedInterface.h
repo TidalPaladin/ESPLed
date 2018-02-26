@@ -24,18 +24,24 @@
 
 class ESPLedInterface {
 
+protected:
+
+  typedef std::vector<ESPLed*> led_container_t;
+  typedef std::function<void(typename led_container_t::value_type)> foreach_t;
+
 public:
 
+
+  ESPLedInterface() { }
+
   /**
-   * @brief Constructor
-   * 
-   * @param tick_interval_ms The time between calls to _loop() in ms
+   * @brief Perfect forwarding constructor to EspEventChain
    * 
    */
-  ESPLedInterface(unsigned long tick_interval_ms)
+  template<typename... Args>
+  ESPLedInterface(Args... args)
   : 
-  _tickInterval_ms(tick_interval_ms),
-  _started(false)
+  _eventChain(args...)
   {
 
   }
@@ -49,17 +55,6 @@ public:
     stopAll();
   }
 
-
-  /**
-   * @brief Change the Ticking interval. This is the interval on which calls
-   * are made to _handleLed() for each attached ESPLed.
-   * 
-   * @param ms The new interval in milliseconds
-   * 
-   * @return this
-   */
-  ESPLedInterface &tickInterval(unsigned long ms) { _tickInterval_ms = ms; return *this; }
-  unsigned long tickInterval() const { return _tickInterval_ms; }
 
   /**
    * @brief Gets how many ESPLed objects are attached to this strategy
@@ -96,13 +91,21 @@ public:
 
 
   /**
+   * @brief Pauses all Leds, they still continue to be attached to this interface
+   * 
+   */
+  void pauseAll();
+  void resumeAll();
+
+
+  /**
    * @brief Detects whether the interface is running
    * 
    * @return
    *   - true if running
    *   - false otherwise
    */
-  bool isStarted() const { return _started; }
+  bool isStarted() const { return _eventChain.running(); } 
 
 public:
 
@@ -133,19 +136,17 @@ public:
 
 protected:
 
-  
-
-  /**
-   * @brief Static function so Ticker can call member _loop().
-   * This can be eliminated once Ticker accepts lambda functions
-   * 
-   */
-  static void _sISR(void *obj) {
-    ESPLedInterface *ptr = (ESPLedInterface *) obj;
-    assert(ptr != nullptr);
-    ptr->_loop();
+  template<typename... Args>
+  size_t _addEvent(Args... args) {
+    return _eventChain.addEvent(args...);
   }
 
+  
+  template<typename... Args>
+  void _changeTimeOf(Args... args) {
+    Serial.println("Changed time!");
+    _eventChain.changeTimeOf(args...);
+  }
 
   /**
    * @brief Calls _handleLed() for each ESPLed in _leds
@@ -156,19 +157,7 @@ protected:
    * 
    * 
    */
-  virtual void _loop();
-
-  /**
-   * @brief This is called from _loop() and applies the periodic
-   * action to an individual led.
-   * 
-   * @details _loop() should call this for each led in 
-   * led_container_t. Here is where you put the code that
-   * describes the Led's action
-   * 
-   * @param led The led to act on
-   */
-  virtual void _handleLed(ESPLed *const led) = 0;
+  virtual void _forEachLed(foreach_t f);
 
 
   /**
@@ -178,48 +167,11 @@ protected:
    */
   static inline bool _checkLedPointer(ESPLed *const led);
 
-  /**
-   * @brief Helper function to start periodic calls to _loop(). Call this
-   * when the first element of led_container_t is added.
-   * 
-   * 
-   */
-  void _startTicking();
-
-
-  /**
-   * @brief Helper function to stop periodic calls to _loop(). Call this
-   * when the last element of led_container_t is removed.
-   * 
-   * 
-   */
-  void _stopTicking();
-
-
-#ifdef ESP32
-
-  /**
-   * @brief Threads on ESP32 must not return. This prevents the thread from
-   * returning.
-   * 
-   * @details Runs an infinite loop until the thread is ready to end
-   * 
-   */
-  void _preventTaskEnd();
-
-#endif
-
-
  
 protected:
 
-  typedef std::vector<ESPLed*> led_container_t;
   led_container_t _leds;
   EspEventChain _eventChain;
-  
-  unsigned long _tickInterval_ms;  // The interval at which to loop
-  bool _started : 1;
-
 
 };
 

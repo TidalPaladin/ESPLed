@@ -1,4 +1,4 @@
-//#include "ESPLed.h"
+#include "ESPLed.h"
 #include "ESPEventChain.h"
 
 #define FAIL_TXT    "***** FAILED *****"
@@ -119,7 +119,7 @@ bool brightnessTests() {
     }
 
     uint8_t b1 = 25, b2 = 75;
-    brightness2.maxBrightnessPercent(b1);
+    brightness2.minBrightnessPercent(b1);
     brightness2.maxBrightnessPercent(b2);
     Serial.printf("Set brightness : Expected %i->%i, actual %i->%i\n", 
         b1, 
@@ -223,7 +223,15 @@ bool eventChainTest1() {
     Serial.println("Called stop");
     Serial.printf("count: %i\n", count);
 
-    delay(t1 + t2);
+    Serial.println("Making sure we dont throw an exception when added event objects are deleted");
+    EspEvent *e3 = new EspEvent(1000, []() {
+        Serial.println("Tick from deleted object, copy was successful!");
+    });
+    chain.addEvent(*e3);
+    chain.start();
+    delete e3;
+    delay(5000);
+    Serial.println("OK");
     return true;
 }
 #else
@@ -233,9 +241,34 @@ bool eventChainTest1() { return true; }
 
 
 
+#ifdef __ESPLED_H__
+#ifdef __ESP_EVENT_CHAIN_H__
 
+bool blinkTest1() {
 
+    ESPLed led(2, HIGH);
+    ESPBlink blink;
+    led.setMode(blink);
 
+    Serial.println("Basic blink test");
+    led.start();
+    delay(8000);
+    
+    Serial.println("Test changing parameters on the fly");
+    blink.interval(100);
+    blink.duration(50);
+
+    delay(8000);
+    blink.stopAll();
+
+    return true;
+}
+
+#endif
+#else
+bool blinkTest1() { return true; }
+
+#endif
 
 
 
@@ -271,7 +304,10 @@ void setup() {
     all_passed &= brightnessTests();
 
     Serial.println("\n");
-    all_passed &= eventChainTest1();
+    //all_passed &= eventChainTest1();
+
+    Serial.println("\n");
+    all_passed &= blinkTest1();
 
 
     Serial.println("\n\n");

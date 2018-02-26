@@ -37,9 +37,11 @@ class ESPLedBrightness {
          * 
          */
         ESPLedBrightness(uint8_t min_percent, uint8_t max_percent)
+        :
+        _minBrightnessPercent(min_percent),
+        _maxBrightnessPercent(max_percent)
         {
-            maxBrightnessPercent(max_percent);
-            minBrightnessPercent(min_percent);
+            assert(min_percent < max_percent && max_percent <= 100);
         }
 
         /**

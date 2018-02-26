@@ -32,6 +32,9 @@ class EspEvent {
 
         typedef std::function<void()> callback_t;
 
+
+        EspEvent() : _time_ms(0) { }
+
         /**
          * @brief Constructor
          * 
@@ -61,6 +64,17 @@ class EspEvent {
          * @return this
          */
         EspEvent &setTime(unsigned long ms);
+
+
+        /**
+         * @brief Sets the time for this event relative to the event that will preceed it in
+         * the EspEventChain
+         * 
+         * @param ms The time in milliseconds, 0 < ms
+         * 
+         * @return this
+         */
+        EspEvent &setCallback(callback_t &callback);
 
         /**
          * @brief Gets the time property for this Event
@@ -116,6 +130,9 @@ class EspEventChain {
 
         }
 
+        ~EspEventChain() {
+            stop();
+        }
 
 
         
@@ -135,6 +152,7 @@ class EspEventChain {
             const bool WAS_RUNNING = running();
             stop();
             _events.emplace_back(args...);
+            reset();
             if(WAS_RUNNING) start();
             return numEvents();
         }
@@ -146,35 +164,15 @@ class EspEventChain {
          * 
          * @return numEvents() - 1, ie the position of the new event in the chain
          */
-        size_t addEvent(const EspEvent &event) {
+        size_t addEvent(EspEvent event) {
             const bool WAS_RUNNING = running();
             stop();
             _events.push_back(event);
+            reset();
             if(WAS_RUNNING) start();
             return numEvents();
         }
 
-        /**
-         * @brief Sets the time that should elapse from when the last
-         * event in the chain is triggered to when the chain restarts
-         * 
-         * @param newTime_ms The time in milliseconds
-         * 
-         * @return this
-         */
-        EspEventChain &timeBetweenChainRepeats(unsigned long newTime_ms);
-        unsigned long timeBetweenChainRepeats() const { return _timeBetweenRepeats_ms; }
-
-        /**
-         * @brief Sets how often the event chain will be triggered. This should be greater
-         * than the time between each event in the chain
-         * 
-         * @param newTime_ms The time in milliseconds
-         * 
-         * @return this
-         */
-        EspEventChain &absoluteTimeBetweenChainRepeats(unsigned long newTime_ms);
-        unsigned long absoluteTimeBetweenChainRepeats() const { return _timeBetweenRepeats_ms; }
 
 
         /**
@@ -193,6 +191,16 @@ class EspEventChain {
          * 
          */
         void changeTimeOf(size_t pos, unsigned long newTime_ms);
+
+
+        /**
+         * @brief Gets the time for the "pos" event
+         * 
+         * @param pos The index, 0 <= pos < numEvents()
+         * 
+         * @return _events.at(pos).getTime()
+         */
+        unsigned long getTimeOf(size_t pos) const;
 
 
         /**
@@ -215,7 +223,7 @@ class EspEventChain {
          * 
          * @return true if the chain is running, false otherwise
          */
-        bool running() { return _started; }
+        bool running() const { return _started; }
 
 
         /**
@@ -274,7 +282,20 @@ class EspEventChain {
          * 
          * @return true if valid, false otherwise
          */
-        bool validCurrentEvent() { return _currentEvent != _events.cend(); }
+        bool validCurrentEvent() const { return !atEndOfChain() && *_currentEvent; }
+
+        /**
+         * @brief Checks whether we have reached the end of the event chain
+         * 
+         * @return bool
+         */
+        bool atEndOfChain() const { return _currentEvent == _events.cend(); }
+
+        /**
+         * @brief Advances the current event to the next event in the chain that is callable
+         * 
+         */
+        void advanceToNextCallable();
 
         /**
          * @brief Handles each tick. Use this until we get std::function for ticker
@@ -293,13 +314,16 @@ class EspEventChain {
 
         /**
          * @brief Schedules the next tick
+         * 
+         * @param offset_ms A time in milliseconds to deduct from the delay between the next event
          */
-        void scheduleNextEvent();
+        unsigned long scheduleNextEvent(unsigned long offset_ms);
 
 
     #ifdef ESP32
 
-        void preventTaskEnd();
+
+        void preventTaskEnd(unsigned long howLong_ms);
 
     #endif
 };

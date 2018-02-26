@@ -113,6 +113,11 @@ public:
   ESPLed &start();
   ESPLed &stop();
   
+  /**
+   * @brief Gets whether the LED is operating under some mode
+   * 
+   */
+  bool active() const;
 
   /**
    * @brief Gets the state of the LED
@@ -166,7 +171,7 @@ protected:
   bool _highIsOn : 1;
   ESPLedBrightness _brightnessRange;
 
-  ESPLedInterface *_strategy;
+  ESPLedInterface *_strategy = nullptr;
   bool _isOn : 1;
 
 };
