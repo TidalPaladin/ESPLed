@@ -49,6 +49,27 @@ unsigned long EspEventChain::getTimeOf(size_t pos) const {
     return _events.at(pos).getTime();
 }
 
+int EspEventChain::getPositionFromhandle(const char* handle) {
+    citerator_t target_pos = getIteratorFromHandle(handle);
+    if( target_pos != container.cend() ) 
+        return std::distance(container.cbegin(), target_pos);
+    else
+        return -1;
+}
+
+citerator_t EspEventChain::getIteratorFromHandle(const char* handle) const {
+    citerator_t result = container.cend();
+
+    if(handle == nullptr || !strcmp(handle, "null"))
+        return result;
+
+    for(auto it = container.cBegin(); it != container.cEnd(); it++) {
+        if( !strcmp(handle, event.getHandle())) 
+            result = it;
+    }
+    return result;
+}
+
 void EspEventChain::start() {
     reset();
     handleTick();
