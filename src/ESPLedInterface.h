@@ -166,9 +166,21 @@ protected:
    * post: events.numEvents() = old numEvents() + 1
    * 
    */
-  template<typename... Args>
-  size_t _addEvent(Args... args) {
-    return _eventChain.addEvent(args...);
+  size_t _addEvent(unsigned long time_ms, std::function<void(ESPLed &)> f) {
+
+    // Create the function that will act on all LEDS
+    std::function<void()> f = [this]() {
+
+      for(auto led : this->_leds) {
+        if(led != nullptr) {
+            f(led); 
+        }
+      } 
+
+    }
+
+    // Add the function that will act on all LEDS to the event chain
+    return _eventChain.addEvent(time_ms, f);
   }
 
   /**
@@ -183,20 +195,7 @@ protected:
     _eventChain.changeTimeOf(args...);
   }
 
-  /**
-   * @brief Calls _handleLed() for each ESPLed in _leds
-   * 
-   * @details   You can override this in derived classes if you
-   *            need to add behaviors before the call to _handleLed(). 
-   * 
-   *            sure that you call ESPLedInterface::_loop() at the end of your overload
-   * 
-   * @param consumer  A function that takes in an ESPLed and acts on it, returning nothing
-   * 
-   * post: consumer() called for every attached Led
-   * 
-   */
-  virtual void _forEachLed(foreach_t consumer);
+
 
 
   /**

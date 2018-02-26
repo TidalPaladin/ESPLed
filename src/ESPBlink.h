@@ -37,13 +37,14 @@ public:
   ESPLedInterface(2)  // 2 events for blinking
   {
 
-    _addEvent(interval_ms, [this]() {
-      this->turnOn();
+    _addEvent(interval_ms, [](EspLed &led) {
+      led.on();
     });
 
-    _addEvent(duration_ms, [this]() {
-      this->turnOff();
+    _addEvent(duration_ms, [](EspLed &led) {
+      led.off();
     });
+    
   }
 
   /**
