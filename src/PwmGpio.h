@@ -38,9 +38,24 @@ public:
 
 #ifndef ESP32
 
-    ESPPwmGpio(gpio_num_t pin)
+    /**
+     * @brief Constructor for a given pin
+     * 
+     * @param pin           The GPIO pin number to attach this object to
+     *                      0 <= pin <= (max GPIO number)
+     * 
+     * @param onWhenHigh    true if analogWrite(pwmRange()) should set the GPIO to HIGH
+     *                      false if -- should set the GPIO to LOW
+     * 
+     * @note    Set onWhenHigh to false to invert the duty cycle. Ex: a duty of 30% with
+     *          onWhenHigh == true becomes a duty of 100-30 = 70%
+     * 
+     * post: GPIO 'pin' set to OUTPUT mode, GPIO 'pin' in LOW state
+     */
+    ESPPwmGpio(gpio_num_t pin, bool onWhenHigh = true)
     :
-    _pin(pin)
+    _pin(pin),
+    _onWhenHigh(onWhenHigh)
     {
         assert(pin <= __ESP_MAX_GPIO_NUM__);
         initialize();
@@ -49,6 +64,20 @@ public:
 
 #else
 
+    /**
+     * @brief Constructor for a given pin
+     * 
+     * @param pin       The GPIO pin number to attach this object to
+     *                  0 <= pin <= (max GPIO number)
+     * 
+     * @param channel   The ESP32 PWM channel to attach the object to
+     *                  0 <= channel <= 15 
+     * 
+     * @param freq_hz   The PWM frequency in Hz
+     *                  freq_hz = a reasonable PWM frequency for the ESP32
+     * 
+     * post: GPIO 'pin' set to OUTPUT mode, GPIO 'pin' in LOW state
+     */
     ESPPwmGpio(gpio_num_t pin, uint8_t channel = 0, uint16_t freq_hz = 1000)
     :
     _pin(pin),
@@ -63,13 +92,18 @@ public:
 
 #endif
 
+    /**
+     * @brief Ensures GPIO is in a good state before destroying the object
+     * 
+     * post: PWM stopped, GPIO in LOW state
+     */
     ~ESPPwmGpio();
 
     /**
      * @brief Initializes the GPIO in the manner appropriate to the
      * microcontroller and framework in use
      * 
-     * @pin The GPIO to initialize
+     * post: GPIO in OUTPUT mode, GPIO in LOW state
      * 
      */
     void initialize();
@@ -78,6 +112,10 @@ public:
      * @brief Helper function to write duty cycles between ESP32 and ESP8266
      * 
      * @param analog_value The PWM value to write to the led
+     * 
+     * post:    GPIO generating a PWM signal,
+     *          signal frequency = pwmFrequency, signal duty = analog_value / pwmRange()
+     * 
      */
     void analogWrite(uint16_t analog_value);
 
@@ -89,6 +127,14 @@ public:
      * @return The GPIO
      */
     gpio_num_t pin() const { return _pin; }
+
+    /**
+     * @brief Gets whether the written duty cycle is the inverse of what is supplied
+     * 
+     * @return value of onWhenHigh
+     */
+    ESPPwmGpio onWhenHigh(bool value) { _onWhenhigh = value; return *this; }
+    bool onWhenHigh() const { return _onWhenHigh; }
 
 
     /**
@@ -109,7 +155,7 @@ public:
      * ESP32
      * 
      * 
-     * @return The channel
+     * @return The channel, 0 <= channel() <= 15
      */
     uint8_t channel() const { return _CHANNEL_32; }
 
@@ -119,7 +165,7 @@ public:
      * ESP32 
      * 
      * 
-     * @return The frequency in Hz
+     * @return The frequency in Hz, frequency() > 0
      */
     unsigned long frequency() const { return _gpio.freq; }
 
