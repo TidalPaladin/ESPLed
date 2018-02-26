@@ -54,8 +54,11 @@ public:
   /**
    * @brief Constructor for ESP8266
    * 
-   * @param pin The GPIO to use for the ESPLed
-   * @param resting_state The GPIO state when the ESPLed is off
+   * @param pin             The GPIO to use for the ESPLed
+   *                        0 <= pin <= (8266 / 32 max GPIO number)
+   * 
+   * @param resting_state   The GPIO state when the ESPLed is off
+   *                        resting_state == LOW || resting_state == HIGH
    * 
    */
   ESPLed(gpio_num_t pin, uint8_t off_state = LOW);
@@ -65,9 +68,9 @@ public:
   ~ESPLed();
 
   /**
-   * @brief Gets the GPIO of the ESPLed
+   * @brief Gets the GPIO that the ESPLed is attached to
    * 
-   * @return GPIO number
+   * @return GPIO number, 0 <= pin() <= (max GPIO num)
    */
   gpio_num_t pin() const { return _gpio.pin(); }
 
@@ -75,7 +78,8 @@ public:
   /** 
    * @brief Sets the maximum LED brightness as a percentage
    * 
-   * @param percent The percentage from 0-100
+   * @param percent   The brightness as a percentage
+   *                  0 <= percent <= 100
    * 
    * @return this
    */
@@ -86,7 +90,8 @@ public:
    * @brief Sets the minimum LED brightness as a percentage. This
    * is the brightness that the LED will be set to when off() is called.
    * 
-   * @param percent The percentage from 0-100
+   * @param percent   The brightness as a percentage
+   *                  0 <= percent <= 100
    * 
    * @return this 
    */
@@ -100,27 +105,45 @@ public:
    * 
    * @param strategy A reference to a strategy to use
    * 
+   * post: start() will cause the ESPLed to behave as instructed by strategy
+   * 
    * @return this
    */
   ESPLed &setMode(ESPLedInterface &strategy);
 
 
   /**
-   * @brief Starts or stops the LED's action for a given mode
+   * @brief Starts the LED's action for a given mode
+   * 
+   * pre: setMode() has been called with a valid object
+   * post: The LED is taking the periodic action instructed by strategy
    * 
    * @return this
    */
   ESPLed &start();
+
+  /**
+   * @brief Stops the LED's action
+   * 
+   * post:  The LED is not taking a periodic action
+   *        LED remains in the on/off state it was in when stop() was called
+   * 
+   * @return this
+   */
   ESPLed &stop();
   
   /**
    * @brief Gets whether the LED is operating under some mode
    * 
+   * @return false if start() was called more recently than stop(), true otherwise
    */
   bool active() const;
 
   /**
    * @brief Gets the state of the LED
+   * 
+   * @note  If minBrightness() != 0 and off() was called, isOn() == false but the
+   *        LED will be emitting light
    * 
    * @return
    *   - true if the LED is on
@@ -133,14 +156,18 @@ public:
   /**
    * @brief Gets whether the LED is on or off when the GPIO is high
    * 
-   * @return true if LED is on when GPIO is high, false otherwise
+   * @return  true if on() will set the LED to HIGH
+   *          false if on() will set the LED to LOW
    */
   bool highIsOn() const { return _highIsOn; }
 
   /**
    * @brief Turns the LED on to a given brightness
    * 
-   * @param percent The brigness to turn on to
+   * @param percent   The brigness to turn on to
+   *                  0 <= percent <= 100
+   * 
+   * post: The LED is on at 'percent' brightness, isOn() == true
    * 
    * @return this
    */
@@ -149,14 +176,21 @@ public:
   /**
    * @brief Turns the LED off
    * 
+   * post:  The LED is set to a brightness level of minBrightness()
+   *        isOn() == false
+   * 
    * @return this
    */
   ESPLed &off();
 
   /**
-   * @brief Toggles the LED to the specified brightness
+   * @brief Toggles the LED between off() and on(percent)
    * 
-   * @param percent The percent brightness from 1-100
+   * @param percent   The percent brightness
+   *                  0 <= percent <= 100
+   * 
+   * post:  if isOn() == false before call, LED is on to 'percent' brightness, isOn() == true
+   *        if isOn() == true before call, LED is set to minBrightness(), isOn() == false
    * 
    * @return this
    */
