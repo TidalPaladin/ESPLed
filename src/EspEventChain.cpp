@@ -49,7 +49,7 @@ unsigned long EspEventChain::getTimeOf(size_t pos) const {
     return _events.at(pos).getTime();
 }
 
-int EspEventChain::getPositionFromhandle(const char* handle) {
+int EspEventChain::getPositionFromHandle(const char* handle) {
     citerator_t target_pos = getIteratorFromHandle(handle);
     if( target_pos != container.cend() ) 
         return std::distance(container.cbegin(), target_pos);

@@ -161,10 +161,6 @@ class EspEventChain {
             stop();
         }
 
-
-        
-
-
         /**
          * @brief Add an event to the end of the chain
          * 
@@ -229,6 +225,29 @@ class EspEventChain {
          */
         unsigned long getTimeOf(size_t pos) const;
 
+
+        /**
+         * @brief Attempts to look up an EspEvent in the chain using the identifying handle of the
+         * object
+         * 
+         * @param handle    The handle to look up, handle != null && handle != "null"
+         * 
+         * @return  The position of the event with getHandle() == handle in the chain if it exists
+         *          -1 if no match was found
+         */
+        int getPositionFromHandle(const char* handle) const;
+
+
+        /**
+         * @brief Attempts to look up an EspEvent in the chain using the identifying handle of the
+         * object
+         * 
+         * @param handle    The handle to look up, handle != null && handle != "null"
+         * 
+         * @return  A const iterator of the event closest to begin() with getHandle() == handle if it exists
+         *          container.cend() if no event was found with that handle
+         */
+        citerator_t getIteratorFromHandle(const char* handle) const;
 
         /**
          * @brief Starts the event chain
