@@ -15,7 +15,7 @@ _highIsOn(off_state != HIGH ? true : false)
 
 ESPLed::ESPLed(const gpio_num_t pin, const uint8_t off_state)
 :
-_gpio(pin),
+_gpio(pin, off_state == LOW),
 _highIsOn(off_state != HIGH ? true : false)
 {
   _gpio.initialize();
@@ -43,12 +43,14 @@ ESPLed &ESPLed::minBrightness(uint8_t percent){
 
 
 ESPLed &ESPLed::on(uint8_t percent) {
-  percent = constrain(percent, minBrightness(), maxBrightness());
-  if( !highIsOn() ) {
-    percent = 100 - percent;
-  }
 
+  // Force percent to be within min/max
+  percent = constrain(percent, minBrightness(), maxBrightness());
+
+  // Map the percent to an antilog analog value
   uint16_t analog_value = ESPLedBrightness::percentToAnalog(percent);
+
+  // Generate PWM, this method compensates for off_state
   _gpio.analogWrite(analog_value);
 
   _isOn = true;

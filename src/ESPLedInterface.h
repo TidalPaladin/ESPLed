@@ -31,11 +31,17 @@ protected:
 
 public:
 
-
+  /**
+   * @brief Empty constructor
+   * 
+   * TODO can this go?
+   */
   ESPLedInterface() { }
 
   /**
    * @brief Perfect forwarding constructor to EspEventChain
+   * 
+   * @param args  Constructor arguments for EspEventChain
    * 
    */
   template<typename... Args>
@@ -50,6 +56,8 @@ public:
    * @brief Destructor. Makes sure that periodic actions are stopped
    * cleanly before destroying object.
    * 
+   * post: All attached LEDs stopped at the brightness they had at time of call
+   * 
    */
   ~ESPLedInterface() {
     stopAll();
@@ -59,7 +67,8 @@ public:
   /**
    * @brief Gets how many ESPLed objects are attached to this strategy
    * 
-   * @return The number of attached ESPLed objects
+   * @return  The number of attached ESPLed objects
+   *          0 <= attachedLedCount()
    */
   size_t attachedLedCount() const { return _leds.size(); }
 
@@ -68,16 +77,23 @@ public:
    * 
    * @details Creates a scheduled periodic call to _loop()
    * 
-   * @param led The ESPLed object
+   * @param led   The ESPLed object
    * 
+   * post: led.isStarted() == true, led acting
    * 
    */
   void start(ESPLed &led);
 
   /**
-   * @brief Stop acting on a given led
+   * @brief Stop acting on a given led by removing it from the interface
    * 
-   * @param led The ESPLed to stop acting on
+   * 
+   * @param led   The ESPLed to stop acting on and remove from interface
+   * 
+   * 
+   * post:  led.isStarted() == false, led stopped at brightness it had at time of call
+   *        led removed from this interface and its last known state forgotten. If led was
+   *        not attached to begin with, nothing happens
    * 
    */
   void stop(ESPLed &led);
@@ -85,6 +101,9 @@ public:
 
   /**
    * @brief Stop all actions
+   * 
+   * post:  stop() called for every led attached to the interface
+   *        No leds attached to the interface
    * 
    */
   void stopAll();
@@ -136,12 +155,28 @@ public:
 
 protected:
 
+  /**
+   * @brief Adds an event to this interface by forwarding args to EspEventChain
+   * 
+   * @note  Mostly used in the constructor to build the event chain that describes
+   *        the behavior of the strategy
+   * 
+   * @param args  Arguments to EspEventChain::addEvent(), usually (time, callback)
+   * 
+   * post: events.numEvents() = old numEvents() + 1
+   * 
+   */
   template<typename... Args>
   size_t _addEvent(Args... args) {
     return _eventChain.addEvent(args...);
   }
 
-  
+  /**
+   * @brief Forwards arguments to EspEventChain::changeTimeOf()
+   * 
+   * @param args  The arguments to be forwarded
+   * 
+   */
   template<typename... Args>
   void _changeTimeOf(Args... args) {
     Serial.println("Changed time!");
@@ -151,13 +186,17 @@ protected:
   /**
    * @brief Calls _handleLed() for each ESPLed in _leds
    * 
-   * @details You can override this in derived classes if you
-   * need to add behaviors before the call to _handleLed(). Just make
-   * sure that you call ESPLedInterface::_loop() at the end of your overload
+   * @details   You can override this in derived classes if you
+   *            need to add behaviors before the call to _handleLed(). 
    * 
+   *            sure that you call ESPLedInterface::_loop() at the end of your overload
+   * 
+   * @param consumer  A function that takes in an ESPLed and acts on it, returning nothing
+   * 
+   * post: consumer() called for every attached Led
    * 
    */
-  virtual void _forEachLed(foreach_t f);
+  virtual void _forEachLed(foreach_t consumer);
 
 
   /**

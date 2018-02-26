@@ -124,7 +124,7 @@ public:
     /**
      * @brief Gets the GPIO to which this LED is attached
      * 
-     * @return The GPIO
+     * @return The GPIO, 0 <= pin() <= (max GPIO number)
      */
     gpio_num_t pin() const { return _pin; }
 

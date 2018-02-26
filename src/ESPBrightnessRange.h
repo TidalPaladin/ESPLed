@@ -21,6 +21,8 @@ class ESPLedBrightness {
         /**
          * @brief Default constuctor
          * 
+         * post: Brightness range is set to 0 - 100% 
+         * 
          */
         ESPLedBrightness()
         :
@@ -32,8 +34,10 @@ class ESPLedBrightness {
         /**
          * @brief Constructor with brightness settings
          * 
-         * @param min_percent The minimum brightness as a percentage
-         * @param max_percent THe maximum brightness as a percentage
+         * @param   min_percent The minimum brightness as a percentage
+         *          0 <= min_percent < max_percent
+         * @param   max_percent THe maximum brightness as a percentage
+         *          min_percent < max_percent <= 100
          * 
          */
         ESPLedBrightness(uint8_t min_percent, uint8_t max_percent)
@@ -47,8 +51,8 @@ class ESPLedBrightness {
         /**
          * @brief Sets the maximum brightness as a percentage
          * 
-         * @param percent The percentage
-         * @pre minBrightnessPercent() < percent <= 100
+         * @param percent   The brightness as a percent
+         *                  minBrightnessPercent() < percent <= 100
          * 
          * @return this
          */
@@ -58,8 +62,8 @@ class ESPLedBrightness {
         /**
          * @brief Sets the minimum brightness as a percentage
          * 
-         * @param percent The percentage
-         * @pre 0 <= percent < maxBrightnessPercent()
+         * @param percent   The brightness as a percent
+         *                  0 <= percent < maxBrightnessPercent()
          * 
          * @return this
          */
@@ -68,23 +72,22 @@ class ESPLedBrightness {
 
 
         /**
-         * @brief Maps a brightness from a percentage to a PWM value. 
+         * @brief   Maps a brightness from a percentage to a PWM value. The returned
+         *          percentage is compensated for the antilog nature of LED brightness
          * 
-         * @details Includes compensation for the antilog nature of brightness.
-         * Conversion is done using a lookup table.
+         * @details     Conversion is done using a 100 element lookup table for
+         *              speed
          * 
-         * @param percent The brightness from 0-100
-         * @param 
+         * @param percent   The brightness as a percent
+         *                  0 <= percent <= 100
          * 
          * @return The PWM value
          */
         static uint16_t percentToAnalog(uint8_t percent);
 
-
-
-
     private:
 
+        // Bit field of 7 since brightness <= 100
         uint8_t _minBrightnessPercent : 7;
         uint8_t _maxBrightnessPercent : 7;
 

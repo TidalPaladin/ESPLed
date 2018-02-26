@@ -8,16 +8,40 @@ class ESPBlink : public ESPLedInterface {
 
 public:
 
+  /**
+   * @brief Default constructor
+   * 
+   * post: duration() == 300, interval() == 2000, isStarted() == false
+   * 
+   */
   ESPBlink()
   :
   ESPLedInterface(2)  // 2 events for blinking
   {
+    ESPBlink(2000, 300);
+  }
 
-    _addEvent(2000, [this]() {
+  /**
+   * @brief Constructor with custom duration and interval
+   * 
+   * @param interval  The time in milliseconds between blinks
+   *                  0 < interval
+   * 
+   * @param duration  The time in milliseconds for the LED to stay on when it blinks
+   *                  0 < duration
+   * 
+   * post: duration() == duration, interval() == interval, isStarted() == false
+   */
+  ESPBlink(unsigned long interval_ms, unsigned long duration_ms)
+  :
+  ESPLedInterface(2)  // 2 events for blinking
+  {
+
+    _addEvent(interval_ms, [this]() {
       this->turnOn();
     });
 
-    _addEvent(300, [this]() {
+    _addEvent(duration_ms, [this]() {
       this->turnOff();
     });
   }
@@ -25,8 +49,8 @@ public:
   /**
    * @brief Sets the interval between the beginning of subsequent blinks.
    * 
-   * @param ms The time in milliseconds between blinks
-   * @pre ms > 0
+   * @param ms  The time in milliseconds between blinks
+   *            0 < ms
    * 
    * @return this
    */
@@ -36,8 +60,8 @@ public:
   /**
    * @brief Sets how long the LED stays on for during a blink
    * 
-   * @param ms The time in milliseconds
-   * @pre 0 < ms < interval()
+   * @param ms  The time in milliseconds
+   *            0 < ms
    * 
    * @return this
    */
@@ -45,23 +69,29 @@ public:
   unsigned long duration() const { return _eventChain.getTimeOf(1); }
 
 
-
-
-
 protected:
 
+  /**
+   * @brief Turns on each ESPLed attached to this object
+   * 
+   * post: isOn() == true for every attached LED
+   */
   void turnOn() {
     _forEachLed( [](ESPLed *led) {
       led->on();
     });
   }
 
+  /**
+   * @brief Turns off each ESPLed attached to this object
+   * 
+   * post: isOn() == false for every attached LED
+   */
   void turnOff() {
     _forEachLed( [](ESPLed *led) {
       led->off();
     });
   }
-
 
 };
 
