@@ -46,7 +46,7 @@ bool TestHelper::printResult() {
 }
 
 bool TestHelper::end() {
-    testPrintF("Ran %i tests - ", TestHelper::totalTestsRun);
+    testPrintF("\n\nRan %i tests - ", TestHelper::totalTestsRun);
 
     if( allTestsPassed() ) { 
         testPrintF("All tests passed!\n");
@@ -55,21 +55,6 @@ bool TestHelper::end() {
         testPrintF("%s %i tests\n", FAIL_TXT, totalTestsFailed);
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

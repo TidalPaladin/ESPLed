@@ -1,10 +1,8 @@
 #include "ESPEventChain.h"
 
 EspEventChain::EspEventChain(size_t num_events)
-:
-_events(num_events) // Reserve vector space
 {
-
+    _events.reserve(num_events);
 }
 
 unsigned long EspEvent::runEvent() const {
@@ -17,7 +15,6 @@ unsigned long EspEvent::runEvent() const {
 
 EspEvent &EspEvent::setTime(unsigned long ms) {
     if( ms == 0) panic();
-    Serial.println("Changed time REAL");
     _time_ms = ms;
     return *this;
 }

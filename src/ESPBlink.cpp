@@ -2,8 +2,8 @@
 #include "ESPLedInterface.h"
 #include "ESPLed.h"
 
-const uint8_t ESPBlink::INTERVAL_INDEX = 1;
-const uint8_t ESPBlink::DURATION_INDEX = 0; 
+const uint8_t ESPBlink::INTERVAL_INDEX = 0;
+const uint8_t ESPBlink::DURATION_INDEX = 1; 
 
 
 
@@ -31,12 +31,10 @@ void ESPBlink::construct(unsigned long interval_ms, unsigned long duration_ms) {
   */
   
   _addEvent(interval_ms, [](ESPLed *led) {
-    Serial.println("ON");
     led->on();
   });
 
   _addEvent(duration_ms, [](ESPLed *led) {
-    Serial.println("OFF");
     led->off();
   });
 

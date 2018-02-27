@@ -52,6 +52,8 @@ public:
   /**
    * @brief Sets how long the LED stays on for during a blink
    * 
+   * TODO need to make indices less confusing... theyre supposed to be backwards here
+   * 
    * @param ms  The time in milliseconds
    *            0 < ms
    * 

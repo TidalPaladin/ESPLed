@@ -217,6 +217,29 @@ bool brightnessTests() {
 
 #ifdef __ESP_EVENT_CHAIN_H__
 
+bool eventChainTest4() {
+    TestHelper test("EspEventChain", "constructors");
+
+    const uint8_t fixed_size = 10;
+    std::function<void()> f = []() {
+
+    };
+    unsigned long t1 = 20, t2 = 30;
+
+    EspEventChain chain1;
+    EspEventChain chain2(100);
+    EspEventChain chain3( EspEvent(t1, f), EspEvent(t2, f) );
+
+    test.printResult(0, chain1.numEvents());
+    test.printResult(0, chain2.numEvents());
+    test.printResult(2, chain3.numEvents());
+
+    test.printResult(t1, chain3.getTimeOf(0));
+    test.printResult(t2, chain3.getTimeOf(1));
+
+    test.printResult();
+}
+
 
 bool eventChainTest1() {
     TestHelper test("EspEventChain","getters");
@@ -233,6 +256,11 @@ bool eventChainTest1() {
     test.printResult(2, (int)chain.numEvents());
     test.printResult(t1+t2, chain.totalTime());
     test.printResult(t1, chain.totalTimeBefore(1));
+
+    chain.addEvent(e1);
+    test.printResult(3, chain.numEvents());
+    test.printResult(2*t1+t2, chain.totalTime());
+    test.printResult(t1, chain.getTimeOf(2));
 
     return test.printResult();
 
@@ -284,8 +312,9 @@ bool eventChainTest3() {
     
     bool ticked = false;
     unsigned long wait = 30;
-    EspEvent *e1 = new EspEvent(30, []() {
-        bool ticked = true;
+
+    EspEvent *e1 = new EspEvent(30, [&]() {
+        ticked = true;
         Serial.println("Tick from deleted object, copy was successful!");
     });
 
@@ -318,15 +347,22 @@ bool blinkTest1() {
     ESPBlink blink;
     led.setMode(blink);
 
-    Serial.println("Checking default blink timings");
-    test.printResult( 2000, blink.interval() );
-    test.printResult( 300, blink.duration() );
+    const unsigned long default_duration = 300;
+    const unsigned long default_interval = 2000;
+     
 
-    Serial.println("Checking attached led count");
-    test.printResult(1, blink.attachedLedCount());
+    Serial.println("Checking default blink timings");
+    test.printResult( default_interval, blink.interval() );
+    test.printResult( default_duration, blink.duration() );
+
+    Serial.println("Checking attached led count before start()");
+    test.printResult(0, blink.attachedLedCount());
 
     Serial.println("Basic blink test");
     led.start();
+
+    Serial.println("Checking attached led count after start()");
+    test.printResult(1, blink.attachedLedCount());
 
     Serial.println("Checking blink.isStarted()");
     test.printResult(true, blink.isStarted());
@@ -392,6 +428,8 @@ void setup() {
     gpioInitTest();
     // ledTest1();
     brightnessTests();
+
+    eventChainTest4();
     eventChainTest1();
     eventChainTest2();
     eventChainTest3();

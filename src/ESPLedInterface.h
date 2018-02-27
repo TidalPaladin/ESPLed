@@ -36,7 +36,10 @@ public:
    * 
    * TODO can this go?
    */
-  ESPLedInterface() { }
+  ESPLedInterface(size_t num_events) 
+  :
+  _eventChain(num_events)
+  { }
 
   /**
    * @brief Perfect forwarding constructor to EspEventChain
@@ -179,8 +182,10 @@ protected:
 
     };
 
+    EspEvent newEvent(time_ms, forEach);
+
     // Add the function that will act on all LEDS to the event chain
-    return _eventChain.addEvent(time_ms, forEach);
+    return _eventChain.addEvent(newEvent);
   }
 
   /**
@@ -191,7 +196,6 @@ protected:
    */
   template<typename... Args>
   void _changeTimeOf(Args... args) {
-    Serial.println("Changed time!");
     _eventChain.changeTimeOf(args...);
   }
 

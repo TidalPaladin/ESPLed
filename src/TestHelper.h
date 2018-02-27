@@ -118,6 +118,19 @@ public:
         }
     }
 
+    /**
+     * @brief Compares expected and actual values within an allowable error
+     * 
+     * pre: expected and actual can be compared using ==
+     * @param expected  The expected value
+     * @param actual    The actual value
+     * @param delta     The allowable difference betwee expected and actual
+     * 
+     * post:    getNumTestsRun()++, getTotalTestsRun()++,
+     *          if(test failed) getNumTestsFailed()++, getTotalTestsFailed()++
+     * 
+     * @return abs(expected - actual) <= delta
+     */
     template<typename T, typename U>
     bool testResultRange(T expected, U actual, double delta) {
         if( abs(expected - actual) > abs(delta) ) {
@@ -181,7 +194,20 @@ public:
         return testResult(expected, actual);
     }
 
-
+    /**
+     * @brief Calls testResultRange() and prints expected/actual and delta values
+     * 
+     * @details     Values are printed by assigning them to an Arduino string. 
+     *              ostringstream would be preferred
+     * 
+     * @param expected  The expeced value
+     * @param actual    The actual value
+     * @param delta     The allowed error of actual
+     * 
+     * post: print "(expected - delta) <= val <= (expected + delta)" and actual value
+     * 
+     * @return testResultRange(expected, actual, delta);
+     */
     template<typename T, typename U>
     bool printResultRange(T expected, U actual, double delta) {
         String EXPECTED_STR_MIN = String(expected - delta);
