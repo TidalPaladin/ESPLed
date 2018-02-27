@@ -14,6 +14,11 @@
 #include <assert.h>
 #include "PwmGpio.h"
 
+#define __ESP_BRIGHTNESS_RANGE_MAX_IN__     100
+#define __ESP_BRIGHTNESS_RANGE_MAX_OUT__    PWMRANGE
+#define __ESP_BRIGHTNESS_RANGE_GAMMA__      2.8
+
+
 class ESPLedBrightness {
 
     public:
@@ -88,6 +93,21 @@ class ESPLedBrightness {
          * @return The PWM value
          */
         static uint16_t percentToAnalog(uint8_t percent);
+
+
+        /**
+         * @brief   Maps a brightness from a percentage to a PWM value. The returned
+         *          percentage is compensated for the antilog nature of LED brightness
+         * 
+         * @details     Conversion is done using a 100 element lookup table for
+         *              speed
+         * 
+         * @param percent   The brightness as a percent
+         *                  0 <= percent <= 100
+         * 
+         * @return The PWM value
+         */
+        static constexpr uint16_t percentToAnalogExact(const uint8_t percent);
 
     private:
 

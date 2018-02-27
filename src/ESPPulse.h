@@ -3,9 +3,9 @@
 #include "ESPLedInterface.h"
 
 #define SINE_STEPS  101
-#define __ESP_PULSE_REFRESH_RATE_INDEX__    1
+#define __ESP_PULSE_REFRESH_RATE_INDEX__    0
 
-
+ 
 class ESPPulse : public ESPLedInterface {
 
 public:
@@ -22,7 +22,7 @@ public:
     ESPLedInterface(1),
     _currentSine(0)
     {
-        construct(100, 1000);
+        construct(60, 2000);
     }
 
     /**
@@ -63,7 +63,7 @@ public:
      * @return this
      */
     ESPPulse &refreshRate(unsigned int hz);
-    unsigned long refreshRate() const { return _eventChain.getTimeOf(__ESP_PULSE_REFRESH_RATE_INDEX__); }
+    unsigned long refreshRate() const;
 
  
 
@@ -93,6 +93,17 @@ private:
      * @return The delta theta value appropriate for refreshRate()
      */
     float getDeltaThetaFromPeriod(unsigned long period_ms) const;
+
+    /**
+     * @brief Converts an angular step size at which the sinusoidal pulse intensity will advance to
+     * the period in milliseconds it takes for a full sine wave to complete
+     * 
+     * @param delta_theta_rads  The step size of theta in radians
+    *                              0 < delta_theta_rads
+     * 
+     * @return The period in milliseconds for a full sine wave refreshing at refreshRate() steps/s
+     */
+    unsigned long getPeriodFromDeltaTheta(float delta_theta_rads) const;
 
     /**
      * @brief Calculates the new brightness level after stepping forward

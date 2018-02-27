@@ -47,7 +47,13 @@ void ESPLedInterface::resumeAll() {
 
 size_t ESPLedInterface::_addEventEveryLed(unsigned long time_ms, std::function<void(ESPLed *)> f) {
 
-    EspEventChain::callback_t forEach = [&, this]() {
+    // for each method must be captured by value copy, not reference
+    EspEventChain::callback_t forEach = [f, this]() {
+        if(!f) {
+            Serial.println("void(ESPLed*) callback function wasn't callable");
+            panic();
+        }
+
         for(auto led : this->_leds) {
             if(led != nullptr) {
                 f(led); 

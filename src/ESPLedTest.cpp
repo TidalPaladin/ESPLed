@@ -156,66 +156,86 @@ bool brightnessTests() {
 
 
 
-// #ifdef __ESPLED_H__
-// bool ledTest1() {
+#ifdef __ESPLED_H__
+bool ledBasicTest1() {
+
+    TestHelper test("ESPLed","various fixed tests");
     
-//     bool all_passed = true;
-//     const uint8_t PIN = 2;
-//     Serial.printf("ESPLed tests - MAKE SURE GPIO%i is connected to A0!\n", PIN);
-//     analogWriteRange(1023);
+    const uint8_t PIN = 2;
+    analogWriteRange(PWMRANGE);
+    ESPLed led(PIN, HIGH);
 
-//     ESPLed reg(PIN);
+    Serial.println("Checking pin assignment");
+    test.printResult(PIN, led.pin());
 
-//     const uint8_t GET_PIN = reg.pin();
-//     Serial.printf("Pin getter test: Expected %i, actual %i\n", PIN, GET_PIN);
-//     if(PIN != GET_PIN){
-//         PRINT_FAIL;
-//         all_passed = false;
-//     }
+    test.printResult(false, led.highIsOn());
 
-//     uint8_t analog_values[] = {0, 100, 50};
-//     const size_t TESTS = sizeof(analog_values) / sizeof(analog_values[0]);
-//     Serial.println("Analog write value tests:");
-//     for(int i = 0; i < TESTS; i++) {    
-//         reg.on(analog_values[i]);
-//         const uint16_t EXPECTED = ESPLedBrightness::percentToAnalog(analog_values[i]);
-//         const uint16_t ACTUAL = 0;
-        
-//         Serial.printf("Expected %i, actual %i\n", EXPECTED, ACTUAL);
-//         if( abs(EXPECTED - ACTUAL) > 20 ) {
-//             PRINT_FAIL;
-//             all_passed = false;
-//         }
-//     }
+    led.on();
+    test.printResult(LOW, digitalRead(PIN));
 
-//     reg.off();
-//     Serial.printf("isOn() test - Expected false, actual %s\n", reg.isOn() ? "true" : "false");
-//     if( reg.isOn() != false ) {
-//         PRINT_FAIL;
-//         all_passed = false;
-//     }
+    led.off();
+    test.printResult(HIGH, digitalRead(PIN));
+    test.printResult(false, led.isOn());
 
-//     reg.on();
-//     Serial.printf("isOn() test - Expected true, actual %s\n", reg.isOn() ? "true" : "false");
-//     if( reg.isOn() != true ) {
-//         PRINT_FAIL;
-//         all_passed = false;
-//     }
+    led.on();
+    test.printResult(true, led.isOn());
 
+    led.toggle();
+    test.printResult(HIGH, digitalRead(PIN));
 
+    test.printResult(100, led.maxBrightness());
+    test.printResult(0, led.minBrightness());
+    test.printResult(false, led.active());
 
-
-
-    
-//     return all_passed;
-
-// }
-// #else
-// bool ledTest1() { return true; }
-// #endif
+    return test.printResult();
+}
+#else
+bool ledTest1() { return true; }
+#endif
 
 
 #ifdef __ESP_EVENT_CHAIN_H__
+
+
+void eventChainTickTimeHelper(TestHelper &test, unsigned long t1, unsigned long t2) {
+
+    const uint32_t DELAY_MARGIN_ERR = 2;
+    unsigned long wait = 3*(t1+t2);
+    unsigned long count = 0;
+    
+    unsigned long lastEvent;
+    unsigned long elapsedTime;
+
+
+    EspEvent e1(t1, [&]() {
+        unsigned long current_time = millis();
+        unsigned long elapsed_time = current_time - lastEvent;
+        test.printResultRange(count != 0 ? t1 : 0,  elapsed_time, 2);
+        count++;
+        lastEvent = current_time;
+    });
+
+    EspEvent e2(t2, [&]() {
+        unsigned long current_time = millis();
+        unsigned long elapsed_time = current_time - lastEvent;
+        test.printResultRange(t2, elapsed_time, 2);
+        count++;
+        lastEvent = current_time;
+    });
+    EspEventChain chain(e1, e2);
+
+    Serial.printf("Tick1: %i, Tick2: %i\n", t1, t2);
+
+    lastEvent = millis();
+    chain.start();
+    delay( wait + DELAY_MARGIN_ERR );
+    chain.stop();
+
+    Serial.println("Checking expected ticks");
+    unsigned long expected_ticks = 2 * wait / (t1+t2) + 1;
+    test.printResult(expected_ticks, count); 
+
+}
 
 bool eventChainTest4() {
     TestHelper test("EspEventChain", "constructors");
@@ -269,41 +289,8 @@ bool eventChainTest1() {
 
 bool eventChainTest2() {
     TestHelper test("EspEventChain", "Ticking properly");
-    
     unsigned long t1 = 100, t2 = 75, wait = (t1 + t2)*3;
-    unsigned long count = 0;
-    
-    unsigned long lastEvent;
-    unsigned long elapsedTime;
-
-
-    EspEvent e1(t1, [&]() {
-        unsigned long current_time = millis();
-        unsigned long elapsed_time = current_time - lastEvent;
-        test.printResultRange(count != 0 ? t1 : 0,  elapsed_time, 2);
-        count++;
-        lastEvent = current_time;
-    });
-
-    EspEvent e2(t2, [&]() {
-        unsigned long current_time = millis();
-        unsigned long elapsed_time = current_time - lastEvent;
-        test.printResultRange(t2, elapsed_time, 2);
-        count++;
-        lastEvent = current_time;
-    });
-    EspEventChain chain(e1, e2);
-
-    Serial.printf("Tick1: %i, Tick2: %i\n", t1, t2);
-
-
-    lastEvent = millis();
-    chain.start();
-    delay( wait + 10 );
-    chain.stop();
-
-    unsigned long expected_ticks = 2 * wait / (t1+t2) + 1;
-    test.printResult(expected_ticks, count); 
+    eventChainTickTimeHelper(test, t1, t2);
     test.printResult();
 }
 
@@ -328,6 +315,24 @@ bool eventChainTest3() {
     test.printResult();
 
 }
+
+bool eventChainTest5() {
+    TestHelper test("ESPEventChain()","time=0 events");
+    unsigned long t1 = 0, t2 = 420;
+    eventChainTickTimeHelper(test, t1, t2);
+    test.printResult();
+}
+
+bool eventChainTest6() {
+    TestHelper test("ESPEventChain()","speed test");
+    unsigned long t1 = 0, t2 = 10;
+    eventChainTickTimeHelper(test, t1, t2);
+    test.printResult();
+}
+
+
+
+
 #else
 bool eventChainTest1() { return true; }
 bool eventChainTest2() { return true; }
@@ -366,6 +371,7 @@ bool blinkTest1() {
 
     Serial.println("Checking blink.isStarted()");
     test.printResult(true, blink.isStarted());
+    test.printResult(true, led.active());
 
     delay(4000);
     
@@ -419,8 +425,8 @@ bool pulseTest1() {
     ESPPulse pulse;
     led.setMode(pulse);
 
-    const unsigned long default_refresh_rate_hz = 100;
-    const unsigned long default_period_ms = 1000;
+    const unsigned long default_refresh_rate_hz = 60;
+    const unsigned long default_period_ms = 2000;
      
 
     Serial.println("Checking default pulse timings");
@@ -436,7 +442,7 @@ bool pulseTest1() {
     Serial.println("Checking attached led count after start()");
     test.printResult(1, pulse.attachedLedCount());
 
-    Serial.println("Checking blink.isStarted()");
+    Serial.println("Checking pulse.isStarted()");
     test.printResult(true, pulse.isStarted());
 
     delay(4000);
@@ -480,15 +486,20 @@ void setup() {
     // ledTest1();
     brightnessTests();
 
+    ledBasicTest1();
+
     eventChainTest4();
     eventChainTest1();
     eventChainTest2();
     eventChainTest3();
+    eventChainTest5();
+    eventChainTest6();
+
 
     blinkTest1();
     blinkTest2();
+pulseTest1();
 
-    pulseTest1();
 
     TestHelper::end();
 }

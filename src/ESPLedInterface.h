@@ -142,7 +142,7 @@ public:
    */
   template <typename T>
   static constexpr T hzToMilliseconds(T hz) { 
-    return hz ? 1000 / hz : 0; 
+    return hz ? 1000 / (double)hz : 0; 
   }
 
   /**
