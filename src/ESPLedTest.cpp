@@ -318,16 +318,50 @@ bool blinkTest1() {
     ESPBlink blink;
     led.setMode(blink);
 
+    Serial.println("Checking default blink timings");
+    test.printResult( 2000, blink.interval() );
+    test.printResult( 300, blink.duration() );
+
+    Serial.println("Checking attached led count");
+    test.printResult(1, blink.attachedLedCount());
+
     Serial.println("Basic blink test");
     led.start();
-    delay(8000);
+
+    Serial.println("Checking blink.isStarted()");
+    test.printResult(true, blink.isStarted());
+
+    delay(4000);
     
     Serial.println("Test changing parameters on the fly");
-    blink.interval(100);
-    blink.duration(50);
+    const int NEW_INTERVAL = 100;
+    const int NEW_DURATION = 50;
+    blink.interval(NEW_INTERVAL);
+    blink.duration(NEW_DURATION);
+    test.printResult( NEW_INTERVAL, blink.interval() );
+    test.printResult( NEW_DURATION, blink.duration() );
 
-    delay(8000);
+    delay(4000);
     blink.stopAll();
+
+    test.printResult(false, blink.isStarted());
+    test.printResult();
+
+}
+
+
+bool blinkTest2() {
+    TestHelper test("ESPBlink()", "test time conversion methods");
+
+    const unsigned long INITIAL_MS = 100;
+    const unsigned long EXPECTED_HZ = 10;
+
+    test.printResult( EXPECTED_HZ, ESPLedInterface::millisecondsToHz(INITIAL_MS) );
+    test.printResult( INITIAL_MS, ESPLedInterface::hzToMilliseconds(EXPECTED_HZ) );
+    test.printResult( 0, ESPLedInterface::hzToMilliseconds(0) );
+    test.printResult( 0, ESPLedInterface::millisecondsToHz(0) );
+
+    test.printResult();
 
 }
 
@@ -363,6 +397,7 @@ void setup() {
     eventChainTest3();
 
     blinkTest1();
+    blinkTest2();
 
     TestHelper::end();
 }

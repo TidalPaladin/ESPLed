@@ -2,20 +2,43 @@
 #include "ESPLedInterface.h"
 #include "ESPLed.h"
 
+const uint8_t ESPBlink::INTERVAL_INDEX = 1;
+const uint8_t ESPBlink::DURATION_INDEX = 0; 
+
+
+
 ESPBlink &ESPBlink::interval(unsigned long ms) {
   if(ms == 0) panic();
 
-  const size_t INDEX_TURN_OFF = 1;
-  _changeTimeOf(INDEX_TURN_OFF, ms);
+  _changeTimeOf(INTERVAL_INDEX, ms);
   return *this;   
 }
 
 ESPBlink &ESPBlink::duration(unsigned long ms) {
   if(ms == 0) panic();
 
-  const size_t INDEX_TURN_ON = 0;
-  _changeTimeOf(INDEX_TURN_ON, ms);
+  _changeTimeOf(DURATION_INDEX, ms);
   return *this;
 }
 
+
+void ESPBlink::construct(unsigned long interval_ms, unsigned long duration_ms) {
+
+  /* 
+    ESPEvents hold time relative to the preceeding event. 
+    So turning on, added at position 0, holds the off time.
+    Turning off, added at position 1, holds the on time
+  */
+  
+  _addEvent(interval_ms, [](ESPLed *led) {
+    Serial.println("ON");
+    led->on();
+  });
+
+  _addEvent(duration_ms, [](ESPLed *led) {
+    Serial.println("OFF");
+    led->off();
+  });
+
+  }
 

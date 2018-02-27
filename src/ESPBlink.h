@@ -17,7 +17,7 @@ public:
   :
   ESPLedInterface(2)  // 2 events for blinking
   {
-    ESPBlink(2000, 300);
+    construct(2000, 300);
   }
 
   /**
@@ -35,15 +35,7 @@ public:
   :
   ESPLedInterface(2)  // 2 events for blinking
   {
-
-    _addEvent(interval_ms, [](ESPLed *led) {
-      led->on();
-    });
-
-    _addEvent(duration_ms, [](ESPLed *led) {
-      led->off();
-    });
-    
+    construct(interval_ms, duration_ms);
   }
 
   /**
@@ -55,7 +47,7 @@ public:
    * @return this
    */
   ESPBlink &interval(unsigned long ms);
-  unsigned long interval() const { return _eventChain.getTimeOf(0); }
+  unsigned long interval() const { return _eventChain.getTimeOf(INTERVAL_INDEX); }
   
   /**
    * @brief Sets how long the LED stays on for during a blink
@@ -66,10 +58,19 @@ public:
    * @return this
    */
   ESPBlink &duration(unsigned long ms);
-  unsigned long duration() const { return _eventChain.getTimeOf(1); }
+  unsigned long duration() const { return _eventChain.getTimeOf(DURATION_INDEX); }
 
 
 protected:
+
+
+private:
+
+  void construct(unsigned long interval_ms, unsigned long duration_ms);
+
+  static const uint8_t INTERVAL_INDEX;
+  static const uint8_t DURATION_INDEX;
+
 
 
 };
