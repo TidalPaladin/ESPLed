@@ -1,29 +1,53 @@
 #ifndef __ESP_PULSE_H__
 #define __ESP_PULSE_H__
-#if FALSE
 #include "ESPLedInterface.h"
 
 #define SINE_STEPS  101
-
+#define __ESP_PULSE_REFRESH_RATE_INDEX__    1
 
 
 class ESPPulse : public ESPLedInterface {
 
 public:
 
+    /**
+     * @brief Consructor with default refresh rate of 100 Hz and default period
+     * of 1000 milliseconds
+     * 
+     * post: isStarted() == false, attachedLedCount() == 0
+     * 
+     */
     ESPPulse()
     :
-    ESPLedInterface(100),
+    ESPLedInterface(1),
+    currentBrightnessPercent(0)
     _currentSine(0)
     {
-        
+        construct(100);
     }
 
     /**
-     * @brief Sets the time for one pulse period,
-     * min -> max -> min
+     * @brief Consructor with custom refresh rate
      * 
-     * @param ms The time in milliseconds
+     * @param refresh_rate_hz   The refresh rate
+     * 
+     * post: isStarted() == false, attachedLedCount() == 0
+     * 
+     */
+    ESPPulse(unsigned long refresh_rate_hz)
+    :
+    ESPLedInterface(1),
+    currentBrightnessPercent(0)
+    _currentSine(0)
+    {
+        construct(refresh_rate_hz);
+    }
+
+    /**
+     * @brief Sets the time taken for the Led to pulse through one full sine period
+     * 
+     * @param ms    The time in milliseconds for the pulse to go from dim to bright and
+     *              back to dim. 0 < ms
      * 
      * @return this
      */
@@ -31,36 +55,61 @@ public:
     unsigned long period() const;
 
     /**
-     * @brief Sets the rate at which changes in pulse brightness
-     * will be updated. This shouldn't need to be faster than what
-     * the human eye can perceive
+     * @brief   Sets the rate at which changes in pulse brightness
+     *          will be updated. This shouldn't need to be faster than what
+     *          the human eye can perceive
      * 
-     * @param hz The rate in hertz
+     * @param hz    The refresh rate in hertz, hz > 0
      * 
      * @return this
      */
     ESPPulse &refreshRate(unsigned int hz);
-    unsigned long rRefreshRate() const { return _refreshRate_hz; }
+    unsigned long refreshRate() const { return _events.getTimeOf(__ESP_PULSE_REFRESH_RATE_INDEX__); }
 
-protected:
-
-    /**
-     * @brief Override to calculate sin(theta) once for each tick
-     * 
-     */
-    virtual void _loop();
-
-    /**
-     * @brief Applies the calculated led brightness to all attached ESPLeds
-     * 
-     * @param led A member of ESPLedInterface::_leds
-     * 
-     */
-    virtual void _handleLed(ESPLed *const led);
-
-    
+ 
 
 private:
+
+    /**
+     * @brief Constructor helper
+     * 
+     * @param refresh_rate_hz   The refresh rate in Hz to initialzie to
+     *                          refresh_rate_hz > 0
+     * 
+     * @param period_ms         The period in milliseconds to initialize to
+     *                          period_ms > 0
+     * 
+     * post: EspEventChain has 1 event added for pulsing
+     * 
+     */
+    void construct(unsigned long refresh_rate_hz, unsigned long period_ms);
+
+    /**
+     * @brief Converts a pulse period in milliseconds to an angular step size such that
+     * at the current refresh rate the Led will appear to pulse at the given period
+     * 
+     * @param period_ms The pulse period in milliseconds
+     *                  0 < period_ms
+     * 
+     * @return The delta theta value appropriate for refreshRate()
+     */
+    float getDeltaThetaFromPeriod(unsigned long period_ms) const;
+
+    /**
+     * @brief Calculates the new brightness level after stepping forward
+     * 
+     * @param led   The ESPLed to calculate from, using its values of min and max brightness
+     * 
+     * @return led.minBrightness() <= val <= led.maxBrightness() appropriate to where we are on the sine wave
+     */
+    uint8_t calculateNewBrightness(ESPLed &led) const;
+
+    /**
+     * @brief Calculates the new value of sin(theta) after taking a step forward
+     * 
+     * @param 
+     */
+    float calculateNewSineValue() const;
 
     /**
      * @brief Computes the sine of an angle using a lookup
@@ -77,21 +126,16 @@ private:
      * @brief Populates a sine lookup table at compile time
      * 
      */
-    void _createSineLookup();
+    // NYI void _createSineLookup();
 
 private:
 
-    unsigned int _refreshRate_hz = 60;   // Refresh rate for pulse mode
     float _theta_rads = PI;              // Current value of theta
-    float _step_rads = PI;               // Incremental change of theta
-
+    float _step_rads;               // Incremental change of theta
     float _currentSine;                 // Track sin(theta) separately 
 
     static const float _sineLut[SINE_STEPS];
 
-
-    
 };
 
-#endif
 #endif

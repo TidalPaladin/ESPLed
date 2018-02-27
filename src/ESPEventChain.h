@@ -71,7 +71,8 @@ class EspEvent {
          * @brief Sets the time for this event relative to the event that will preceed it in
          * the EspEventChain
          * 
-         * @param ms The time in milliseconds, 0 < ms
+         * @param ms    The time in milliseconds, 0 <= ms
+         *              ms = 0 for an event that will run immediately after the one preceeding it
          * 
          * @return this
          */
@@ -131,6 +132,7 @@ class EspEventChain {
         typedef std::vector<EspEvent> container_t;
         typedef container_t::const_iterator citerator_t;
         typedef container_t::iterator iterator_t;
+        typedef EspEvent::callback_t callback_t;
 
     public:
         

@@ -14,7 +14,6 @@ unsigned long EspEvent::runEvent() const {
 }
 
 EspEvent &EspEvent::setTime(unsigned long ms) {
-    if( ms == 0) panic();
     _time_ms = ms;
     return *this;
 }
@@ -121,6 +120,7 @@ void EspEventChain::advanceToNextCallable() {
         _currentEvent++;
     }
 
+    // Stop if we cant find another valid event
     if( !validCurrentEvent() )
         stop();
 }
@@ -128,6 +128,15 @@ void EspEventChain::advanceToNextCallable() {
 unsigned long EspEventChain::scheduleNextEvent(unsigned long offset_ms) {
     advanceToNextCallable();
     unsigned long delay = _currentEvent->getTime();
+
+
+    // Handle time=0 events that should be run immediately, no scheduling
+    while(delay == 0) {
+        _currentEvent->runEvent();
+        advanceToNextCallable();
+        delay = _currentEvent->getTime();
+    }
+
 
     delay -= ( offset_ms <= delay ? offset_ms : delay); 
 

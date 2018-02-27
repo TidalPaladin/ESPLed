@@ -39,7 +39,9 @@ public:
   ESPLedInterface(size_t num_events) 
   :
   _eventChain(num_events)
-  { }
+  { 
+    
+  }
 
   /**
    * @brief Perfect forwarding constructor to EspEventChain
@@ -159,34 +161,43 @@ public:
 protected:
 
   /**
-   * @brief Adds an event to this interface by forwarding args to EspEventChain
+   * @brief Adds an event to this interface by forwarding args to EspEventChain. The given
+   * callback accepts an ESPLed pointer and will be called on every attached Led
    * 
    * @note  Mostly used in the constructor to build the event chain that describes
    *        the behavior of the strategy
    * 
-   * @param args  Arguments to EspEventChain::addEvent(), usually (time, callback)
+   * @param ms_relative_to_previous The time in milliseconds for the event to run relative
+   *                                to the event that preceeds it in the event chain
+   * 
+   * @param for_each  The callback to run for every attached led per tick
    * 
    * post: events.numEvents() = old numEvents() + 1
    * 
    */
-  size_t _addEvent(unsigned long time_ms, std::function<void(ESPLed *)> f) {
+  size_t _addEventEveryLed(unsigned long ms_relative_to_previous, std::function<void(ESPLed *)> for_each);
 
-    // Create the function that will act on all LEDS
-    std::function<void()> forEach = [this, f]() { 
 
-      for(auto led : this->_leds) {
-        if(led != nullptr) {
-            f(led); 
-        }
-      } 
+  /**
+   * @brief Adds an event to this interface by forwarding args to EspEventChain. The given
+   * callback accepts and returns nothing, and will be called once per tick. See above method
+   * for something that will be called on every LED when a tick occurrs
+   * 
+   * @note  Mostly used in the constructor to build the event chain that describes
+   *        the behavior of the strategy
+   * 
+   * @param ms_relative_to_previous The time in milliseconds for the event to run relative
+   *                                to the event that preceeds it in the event chain
+   * 
+   * @param run_once  The callback to run once per tick
+   * 
+   * post: events.numEvents() = old numEvents() + 1
+   * 
+   * @return The number of events in the chain, _events.numEvents()
+   */
+  size_t _addEvent(unsigned long ms_relative_to_previous, EspEventChain::callback_t run_once);
 
-    };
 
-    EspEvent newEvent(time_ms, forEach);
-
-    // Add the function that will act on all LEDS to the event chain
-    return _eventChain.addEvent(newEvent);
-  }
 
   /**
    * @brief Forwards arguments to EspEventChain::changeTimeOf()

@@ -2,11 +2,12 @@
 #include "ESPLedInterface.h"
 #include "ESPLed.h"
 
-#if FALSE
 
 ESPPulse &ESPPulse::period(unsigned long ms){
-  // Remember period is [0,2pi] because wave is offset to always be positive
-  _step_rads = TWO_PI / ms * hzToMilliseconds( _refreshRate_hz );
+  if(period == 0)
+    panic();
+
+  _step_rads = getDeltaThetaFromPeriod(ms);
   return *this;
 }
 
@@ -17,46 +18,23 @@ unsigned long ESPPulse::period() const {
 
 
 ESPPulse &ESPPulse::refreshRate(unsigned int hz){
+  if(hz == 0)
+    panic();
+
   _refreshRate_hz = hz;
   return *this;
 }
 
 
-void ESPPulse::_loop() { 
+float ESPPulse::getDeltaThetaFromPeriod(unsigned long period_ms) const {
+  if(period_ms == 0)
+    panic();
 
-  /* Increment theta by the step size */
-  _theta_rads += _step_rads;
-
-  /* Calculate the sine of the new theta */
-  const float NEW_SINE = _sin(_theta_rads);
-
-  /* Ignore steps in theta that are too small for the LUT to resolve */
-  if( NEW_SINE == _currentSine ) {
-    return;
-  }
-
-  /* If sin(theta) changed, alter member variable */
-  _currentSine = NEW_SINE;
-
-  /* Always call parent _loop() at the end */
-  ESPLedInterface::_loop();
-  
+  // Remember period is [0,2pi] because wave is offset to always be positive
+  return TWO_PI / ms * hzToMilliseconds( _refreshRate_hz );
 }
 
 
-void ESPPulse::_handleLed(ESPLed *const led) {
-
-  /* Calculate A and O for f(x) = A * sin(x) + O */
-  /* TODO We can probably find a way to not calculate this on every call */
-  const uint8_t OFFSET = (led->maxBrightness() + led->minBrightness()) / 2;
-  const uint8_t AMPLITUDE = led->maxBrightness() - OFFSET;
-
-  /* Find the value of f(x) = A * sin(x) + O */
-  const uint8_t PERCENT_BRIGHTNESS = AMPLITUDE * _currentSine + OFFSET;
-
-  led->on(PERCENT_BRIGHTNESS);
-
-}
 
 float ESPPulse::_sin(float theta){
 
@@ -86,8 +64,48 @@ float ESPPulse::_sin(float theta){
 }
 
 
+void ESPPulse::construct(unsigned long refresh_rate_hz, unsigned long period_ms) {
+  if(refresh_rate_hz == 0 || period_ms == 0)
+    panic();
 
+  _step_rads = getDeltaThetaFromPeriod(period_ms);
 
+  /*
+    Event 1 = update theta, t = hzToMilliseconds(refreshRate)
+    Event 2 = forEachLed write brightness, t = 0
+  */
+
+  _addEvent(refresh_rate_hz, [this]() {
+    this._currentSine = calculateNewSineValue();
+  });
+  _addEventEveryLed(0, [this](ESPLed *led) {
+    const uint8_t BRIGHTNESS = calculateNewBrightness(&led);
+    led->on(BRIGHTNESS);
+  });
+  
+}
+
+uint8_t ESPPulse::calculateNewBrightness(const ESPLed &led) const {
+
+  /* Calculate A and O for f(x) = A * sin(x) + O */
+  const uint8_t OFFSET = (led->maxBrightness() + led->minBrightness()) / 2;
+  const uint8_t AMPLITUDE = led->maxBrightness() - OFFSET;
+
+  /* Find the value of f(x) = A * sin(x) + O */
+  const uint8_t PERCENT_BRIGHTNESS = AMPLITUDE * _currentSine + OFFSET;
+  return PERCENT_BRIGHTNESS;
+
+}
+
+float ESPPulse::calculateNewSineValue() const {
+
+  /* Increment theta by the step size */
+  _theta_rads += _step_rads;
+
+  /* Calculate the sine of the new theta */
+  const float NEW_SINE = _sin(_theta_rads);
+  return NEW_SINE;
+}
 
 
 
@@ -115,4 +133,3 @@ const float _sineLut[SINE_STEPS] PROGMEM = {
   0.9969173,	0.9980267,	0.9988899,	0.9995066,	0.9998766,
   1.0000000	
 };
-#endif
