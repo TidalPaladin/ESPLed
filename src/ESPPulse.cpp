@@ -4,7 +4,7 @@
 
 
 ESPPulse &ESPPulse::period(unsigned long ms){
-  if(period == 0)
+  if(ms == 0)
     panic();
 
   _step_rads = getDeltaThetaFromPeriod(ms);
@@ -13,15 +13,15 @@ ESPPulse &ESPPulse::period(unsigned long ms){
 
 unsigned long ESPPulse::period() const {
   const float stepsPerPeriod = TWO_PI / _step_rads;
-  return stepsPerPeriod / _refreshRate_hz * 1000;  // seconds to ms
+  return stepsPerPeriod / refreshRate() * 1000;  // seconds to ms
 }
 
 
 ESPPulse &ESPPulse::refreshRate(unsigned int hz){
   if(hz == 0)
     panic();
-
-  _refreshRate_hz = hz;
+  const unsigned long ms = hzToMilliseconds(hz);
+  _eventChain.changeTimeOf(__ESP_PULSE_REFRESH_RATE_INDEX__, ms);
   return *this;
 }
 
@@ -31,7 +31,7 @@ float ESPPulse::getDeltaThetaFromPeriod(unsigned long period_ms) const {
     panic();
 
   // Remember period is [0,2pi] because wave is offset to always be positive
-  return TWO_PI / ms * hzToMilliseconds( _refreshRate_hz );
+  return TWO_PI / period_ms * hzToMilliseconds( refreshRate() );
 }
 
 
@@ -76,10 +76,10 @@ void ESPPulse::construct(unsigned long refresh_rate_hz, unsigned long period_ms)
   */
 
   _addEvent(refresh_rate_hz, [this]() {
-    this._currentSine = calculateNewSineValue();
+    this->_currentSine = calculateNewSineValue();
   });
   _addEventEveryLed(0, [this](ESPLed *led) {
-    const uint8_t BRIGHTNESS = calculateNewBrightness(&led);
+    const uint8_t BRIGHTNESS = calculateNewBrightness(*led);
     led->on(BRIGHTNESS);
   });
   
@@ -88,8 +88,8 @@ void ESPPulse::construct(unsigned long refresh_rate_hz, unsigned long period_ms)
 uint8_t ESPPulse::calculateNewBrightness(const ESPLed &led) const {
 
   /* Calculate A and O for f(x) = A * sin(x) + O */
-  const uint8_t OFFSET = (led->maxBrightness() + led->minBrightness()) / 2;
-  const uint8_t AMPLITUDE = led->maxBrightness() - OFFSET;
+  const uint8_t OFFSET = (led.maxBrightness() + led.minBrightness()) / 2;
+  const uint8_t AMPLITUDE = led.maxBrightness() - OFFSET;
 
   /* Find the value of f(x) = A * sin(x) + O */
   const uint8_t PERCENT_BRIGHTNESS = AMPLITUDE * _currentSine + OFFSET;
@@ -97,7 +97,7 @@ uint8_t ESPPulse::calculateNewBrightness(const ESPLed &led) const {
 
 }
 
-float ESPPulse::calculateNewSineValue() const {
+float ESPPulse::calculateNewSineValue() {
 
   /* Increment theta by the step size */
   _theta_rads += _step_rads;

@@ -30,11 +30,11 @@ void ESPBlink::construct(unsigned long interval_ms, unsigned long duration_ms) {
     Turning off, added at position 1, holds the on time
   */
   
-  _addEvent(interval_ms, [](ESPLed *led) {
+  _addEventEveryLed(interval_ms, [](ESPLed *led) {
     led->on();
   });
 
-  _addEvent(duration_ms, [](ESPLed *led) {
+  _addEventEveryLed(duration_ms, [](ESPLed *led) {
     led->off();
   });
 

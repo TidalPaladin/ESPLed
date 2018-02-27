@@ -34,7 +34,7 @@ bool TestHelper::testResult(std::string expected, std::string actual) {
 
 bool TestHelper::printResult(bool expected, bool actual) {
     String expectedString = String(expected ? "true" : "false");
-    String actualString = String(actual ? "true : false");
+    String actualString = String(actual ? "true" : "false");
 
     testPrintF("Expected %s, Actual %s\n", expectedString.c_str(), actualString.c_str());
     return testResult(expected, actual);

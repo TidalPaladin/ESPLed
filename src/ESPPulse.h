@@ -20,27 +20,26 @@ public:
     ESPPulse()
     :
     ESPLedInterface(1),
-    currentBrightnessPercent(0)
     _currentSine(0)
     {
-        construct(100);
+        construct(100, 1000);
     }
 
     /**
      * @brief Consructor with custom refresh rate
      * 
      * @param refresh_rate_hz   The refresh rate
+     * @param period_ms          The pulse period in ms
      * 
      * post: isStarted() == false, attachedLedCount() == 0
      * 
      */
-    ESPPulse(unsigned long refresh_rate_hz)
+    ESPPulse(unsigned long refresh_rate_hz, unsigned long period_ms)
     :
     ESPLedInterface(1),
-    currentBrightnessPercent(0)
     _currentSine(0)
     {
-        construct(refresh_rate_hz);
+        construct(refresh_rate_hz, period_ms);
     }
 
     /**
@@ -64,7 +63,7 @@ public:
      * @return this
      */
     ESPPulse &refreshRate(unsigned int hz);
-    unsigned long refreshRate() const { return _events.getTimeOf(__ESP_PULSE_REFRESH_RATE_INDEX__); }
+    unsigned long refreshRate() const { return _eventChain.getTimeOf(__ESP_PULSE_REFRESH_RATE_INDEX__); }
 
  
 
@@ -102,14 +101,14 @@ private:
      * 
      * @return led.minBrightness() <= val <= led.maxBrightness() appropriate to where we are on the sine wave
      */
-    uint8_t calculateNewBrightness(ESPLed &led) const;
+    uint8_t calculateNewBrightness(const ESPLed &led) const;
 
     /**
      * @brief Calculates the new value of sin(theta) after taking a step forward
      * 
      * @param 
      */
-    float calculateNewSineValue() const;
+    float calculateNewSineValue();
 
     /**
      * @brief Computes the sine of an angle using a lookup

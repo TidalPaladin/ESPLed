@@ -47,7 +47,7 @@ void ESPLedInterface::resumeAll() {
 
 size_t ESPLedInterface::_addEventEveryLed(unsigned long time_ms, std::function<void(ESPLed *)> f) {
 
-    ESPEventChain::callback_t forEach = [this]() {
+    EspEventChain::callback_t forEach = [&, this]() {
         for(auto led : this->_leds) {
             if(led != nullptr) {
                 f(led); 
@@ -58,8 +58,8 @@ size_t ESPLedInterface::_addEventEveryLed(unsigned long time_ms, std::function<v
     return _addEvent(time_ms, forEach);
 }
 
-size_t _addEvent(unsigned long time_ms, EspEventChain::callback_t function) {
-    EspEvent newEvent(time_ms, forEach);
+size_t ESPLedInterface::_addEvent(unsigned long time_ms, EspEventChain::callback_t function) {
+    EspEvent newEvent(time_ms, function);
 
     // Add the function that will act on all LEDS to the event chain
     return _eventChain.addEvent(newEvent);
