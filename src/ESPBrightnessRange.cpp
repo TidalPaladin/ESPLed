@@ -2,18 +2,23 @@
 
 
 ESPLedBrightness &ESPLedBrightness::maxBrightnessPercent(uint8_t percent) {
-    if( percent <= minBrightnessPercent() )
-        percent = minBrightnessPercent() + 1;
-
+    
     _maxBrightnessPercent = percent;
+
+    if( percent <= _minBrightnessPercent )
+        _minBrightnessPercent = percent - 1;
+
     return *this;
 }
 
 ESPLedBrightness &ESPLedBrightness::minBrightnessPercent(uint8_t percent) {
-    if( percent >= maxBrightnessPercent() )
-        percent = maxBrightnessPercent() - 1;
+    
 
     _minBrightnessPercent = percent;
+
+    if( percent >= _maxBrightnessPercent )
+        _maxBrightnessPercent = percent + 1;
+
     return *this;
 }
 

@@ -3,7 +3,6 @@
 
 #include "ESPLedInterface.h"
 
-
 class ESPBlink : public ESPLedInterface {
 
 public:
@@ -37,12 +36,12 @@ public:
   ESPLedInterface(2)  // 2 events for blinking
   {
 
-    _addEvent(interval_ms, [](EspLed &led) {
-      led.on();
+    _addEvent(interval_ms, [](ESPLed *led) {
+      led->on();
     });
 
-    _addEvent(duration_ms, [](EspLed &led) {
-      led.off();
+    _addEvent(duration_ms, [](ESPLed *led) {
+      led->off();
     });
     
   }
@@ -72,27 +71,6 @@ public:
 
 protected:
 
-  /**
-   * @brief Turns on each ESPLed attached to this object
-   * 
-   * post: isOn() == true for every attached LED
-   */
-  void turnOn() {
-    _forEachLed( [](ESPLed *led) {
-      led->on();
-    });
-  }
-
-  /**
-   * @brief Turns off each ESPLed attached to this object
-   * 
-   * post: isOn() == false for every attached LED
-   */
-  void turnOff() {
-    _forEachLed( [](ESPLed *led) {
-      led->off();
-    });
-  }
 
 };
 

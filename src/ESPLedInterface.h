@@ -166,10 +166,10 @@ protected:
    * post: events.numEvents() = old numEvents() + 1
    * 
    */
-  size_t _addEvent(unsigned long time_ms, std::function<void(ESPLed &)> f) {
+  size_t _addEvent(unsigned long time_ms, std::function<void(ESPLed *)> f) {
 
     // Create the function that will act on all LEDS
-    std::function<void()> f = [this]() {
+    std::function<void()> forEach = [this, f]() { 
 
       for(auto led : this->_leds) {
         if(led != nullptr) {
@@ -177,10 +177,10 @@ protected:
         }
       } 
 
-    }
+    };
 
     // Add the function that will act on all LEDS to the event chain
-    return _eventChain.addEvent(time_ms, f);
+    return _eventChain.addEvent(time_ms, forEach);
   }
 
   /**

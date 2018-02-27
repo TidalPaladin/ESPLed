@@ -127,6 +127,12 @@ class EspEvent {
 class EspEventChain {
 
     public:
+
+        typedef std::vector<EspEvent> container_t;
+        typedef container_t::const_iterator citerator_t;
+        typedef container_t::iterator iterator_t;
+
+    public:
         
         /**
          * @brief Default constructor, nothing gets initialized
@@ -276,6 +282,12 @@ class EspEventChain {
 
 
         /**
+         * @brief Runs the chain once from start to finish
+         * 
+         */
+        // TODO implement this!!!
+
+        /**
          * @brief Gets the time required for the entire event chain to complete. Does not
          * account for the time taken by the callbacks
          * 
@@ -287,7 +299,7 @@ class EspEventChain {
         /**
          * @brief Gets the time it will take for the first "index" events to run
          * 
-         * @param index The event to sum before, 0 <= index < numEvents()
+         * @param index The event to sum before, 0 < index < numEvents()
          *
          * @return Sum of getTimeOf() for events between 0 and index
          */
@@ -296,9 +308,7 @@ class EspEventChain {
     private:
 
         // The container of EspEvents and the corresponding iterators
-        typedef std::vector<EspEvent> container_t;
-        typedef container_t::const_iterator citerator_t;
-        typedef container_t::iterator iterator_t;
+        
 
         container_t _events;
         citerator_t _currentEvent;

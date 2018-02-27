@@ -28,17 +28,20 @@ EspEvent &EspEvent::setCallback(callback_t &callback) {
 }
 
 unsigned long EspEventChain::totalTime() const {
-    return totalTimeBefore( numEvents() );  
+    return totalTimeBefore( numEvents()-1 ) + getTimeOf(numEvents()-1);  
 }
 
 unsigned long EspEventChain::totalTimeBefore(size_t index) const {
-    if( index == 0 || index >= numEvents() ) panic();
 
-    index--;
+    if( index >= numEvents() ) 
+        panic();
+    else if(index == 0)
+        return 0;
+
     unsigned long total = 0;
     
-    while(index >= 0) {
-        total += getTimeOf(index);
+    for(int pos = 0; pos < index; pos++){
+        total += getTimeOf(pos);
     }
     return total;
 } 
@@ -49,22 +52,22 @@ unsigned long EspEventChain::getTimeOf(size_t pos) const {
     return _events.at(pos).getTime();
 }
 
-int EspEventChain::getPositionFromHandle(const char* handle) {
+int EspEventChain::getPositionFromHandle(const char* handle) const {
     citerator_t target_pos = getIteratorFromHandle(handle);
-    if( target_pos != container.cend() ) 
-        return std::distance(container.cbegin(), target_pos);
+    if( target_pos != _events.cend() ) 
+        return std::distance(_events.cbegin(), target_pos);
     else
         return -1;
 }
 
-citerator_t EspEventChain::getIteratorFromHandle(const char* handle) const {
-    citerator_t result = container.cend();
+EspEventChain::citerator_t EspEventChain::getIteratorFromHandle(const char* handle) const {
+    citerator_t result = _events.cend();
 
     if(handle == nullptr || !strcmp(handle, "null"))
         return result;
 
-    for(auto it = container.cBegin(); it != container.cEnd(); it++) {
-        if( !strcmp(handle, event.getHandle())) 
+    for(auto it = _events.cbegin(); it != _events.cend(); it++) {
+        if( !strcmp(handle, it->getHandle())) 
             result = it;
     }
     return result;

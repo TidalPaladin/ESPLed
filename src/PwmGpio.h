@@ -133,7 +133,7 @@ public:
      * 
      * @return value of onWhenHigh
      */
-    ESPPwmGpio onWhenHigh(bool value) { _onWhenhigh = value; return *this; }
+    ESPPwmGpio onWhenHigh(bool value) { _onWhenHigh = value; return *this; }
     bool onWhenHigh() const { return _onWhenHigh; }
 
 
@@ -174,7 +174,7 @@ public:
 
 private:
 
-
+    bool _onWhenhigh : 1;
     gpio_num_t _pin;
 
 #ifdef ESP32

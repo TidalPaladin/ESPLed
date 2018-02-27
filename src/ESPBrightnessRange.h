@@ -52,7 +52,9 @@ class ESPLedBrightness {
          * @brief Sets the maximum brightness as a percentage
          * 
          * @param percent   The brightness as a percent
-         *                  minBrightnessPercent() < percent <= 100
+         *                  0 <= percent < 100
+         * 
+         * post: maxBrightnessPercent() == percent, minBrightnessPercent() < maxBrightnessPercent()
          * 
          * @return this
          */
@@ -63,7 +65,9 @@ class ESPLedBrightness {
          * @brief Sets the minimum brightness as a percentage
          * 
          * @param percent   The brightness as a percent
-         *                  0 <= percent < maxBrightnessPercent()
+         *                  0 <= percent < 100
+         * 
+         * post: minBrightnessPercent() == percent, minBrightnessPercent() < maxBrightnessPercent()
          * 
          * @return this
          */

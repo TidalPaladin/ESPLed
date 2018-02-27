@@ -10,6 +10,8 @@ ESPPwmGpio::~ESPPwmGpio(){
 
 void ESPPwmGpio::analogWrite(uint16_t analog_value) {
 
+    analog_value = _onWhenHigh ? analog_value : pwmRange() - analog_value;
+
 #ifdef ESP32
     ledcWrite( channel(), analog_value);
 #else
@@ -19,18 +21,6 @@ void ESPPwmGpio::analogWrite(uint16_t analog_value) {
 
 }
 
-void ESPPwmGpio::analogWrite(uint16_t analog_value) {
-
-    // Invert duty cycle if needed
-    analog_value = _onWhenHigh ? analog_value : pwmRange() - analog_value;
-
-    #ifndef ESP32
-        digitalWrite(_pin, analog_value);
-    #else 
-        ledcWrite(_pin, analog_value);
-    #endif
-
-}
 
 void ESPPwmGpio::initialize() {
 
