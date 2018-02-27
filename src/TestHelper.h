@@ -86,9 +86,9 @@ public:
 
 
     /**
-     * @brief
+     * @brief Gets whether every test has passed for this program run
      * 
-     * @param
+     * @return true if numTestsFailed == 0 for every TestHelper created this program run
      * 
      */
     static bool allTestsPassed() { return getTotalTestsFailed() == 0;} 
@@ -193,6 +193,7 @@ public:
         testPrintF("Expected %s, Actual %s\n", expectedString.c_str(), actualString.c_str());
         return testResult(expected, actual);
     }
+    bool printResult(bool expected, bool actual);
 
     /**
      * @brief Calls testResultRange() and prints expected/actual and delta values

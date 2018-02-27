@@ -32,7 +32,13 @@ bool TestHelper::testResult(std::string expected, std::string actual) {
     return testResult(expected.c_str(), actual.c_str());
 }
 
+bool TestHelper::printResult(bool expected, bool actual) {
+    String expectedString = String(expected ? "true" : "false");
+    String actualString = String(actual ? "true : false");
 
+    testPrintF("Expected %s, Actual %s\n", expectedString.c_str(), actualString.c_str());
+    return testResult(expected, actual);
+}
 
 bool TestHelper::printResult() {
     if( noneFailedThisTest() ) {
