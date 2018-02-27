@@ -110,7 +110,7 @@ float ESPPulse::calculateNewSineValue() {
 
 
 // Sine lookup table on [0,pi/2]
-const float _sineLut[SINE_STEPS] PROGMEM = {
+const float ESPPulse::_sineLut[SINE_STEPS] PROGMEM = {
   0.0000000,	0.0157073,	0.0314108,	0.0471065,	0.0627905,
   0.0784591,	0.0941083,	0.1097343,	0.1253332,	0.1409012,
   0.1564345,	0.1719291,	0.1873813,	0.2027873,	0.2181432,

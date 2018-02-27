@@ -410,6 +410,57 @@ bool blinkTest1() { return true; }
 
 
 
+#ifdef __ESP_PULSE_H__
+
+bool pulseTest1() {
+    TestHelper test("ESPPulse()", "constructors");
+
+    ESPLed led(2, HIGH);
+    ESPPulse pulse;
+    led.setMode(pulse);
+
+    const unsigned long default_refresh_rate_hz = 100;
+    const unsigned long default_period_ms = 1000;
+     
+
+    Serial.println("Checking default pulse timings");
+    test.printResult( default_refresh_rate_hz, pulse.refreshRate() );
+    test.printResult( default_period_ms, pulse.period() );
+
+    Serial.println("Checking attached led count before start()");
+    test.printResult(0, pulse.attachedLedCount());
+
+    Serial.println("Basic pulse test");
+    led.start();
+
+    Serial.println("Checking attached led count after start()");
+    test.printResult(1, pulse.attachedLedCount());
+
+    Serial.println("Checking blink.isStarted()");
+    test.printResult(true, pulse.isStarted());
+
+    delay(4000);
+    
+    Serial.println("Test changing parameters on the fly");
+    const int NEW_REFRESH_RATE = 150;
+    const int NEW_PERIOD = 300;
+    pulse.refreshRate(NEW_REFRESH_RATE);
+    pulse.period(NEW_PERIOD);
+    test.printResult( NEW_REFRESH_RATE, pulse.refreshRate() );
+    test.printResult( NEW_PERIOD, pulse.period() );
+    Serial.println("Should be pulsing fast now!");
+
+    delay(4000);
+    pulse.stopAll();
+
+    test.printResult(false, pulse.isStarted());
+    test.printResult();
+}
+#else
+bool pulseTest1() { return true; }
+#endif
+
+
 
 
 
@@ -436,6 +487,8 @@ void setup() {
 
     blinkTest1();
     blinkTest2();
+
+    pulseTest1();
 
     TestHelper::end();
 }
