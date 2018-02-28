@@ -75,7 +75,7 @@ public:
 	 * @return  The number of attached ESPLed objects
 	 *          0 <= attachedLedCount()
 	 */
-	size_t attachedLedCount() const { return _leds.size(); }
+	size_t getAttachedLedCount() const { return _leds.size(); }
 
 	/**
 	 * @brief Start the periodic action for this strategy

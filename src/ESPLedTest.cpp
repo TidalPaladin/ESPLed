@@ -361,13 +361,13 @@ bool blinkTest1() {
 	test.printResult( default_duration, blink.duration() );
 
 	Serial.println("Checking attached led count before start()");
-	test.printResult(0, blink.attachedLedCount());
+	test.printResult(0, blink.getAttachedLedCount());
 
 	Serial.println("Basic blink test");
 	led.start();
 
 	Serial.println("Checking attached led count after start()");
-	test.printResult(1, blink.attachedLedCount());
+	test.printResult(1, blink.getAttachedLedCount());
 
 	Serial.println("Checking blink.isStarted()");
 	test.printResult(true, blink.isStarted());
@@ -434,13 +434,13 @@ bool pulseTest1() {
 	test.printResult( default_period_ms, pulse.getPeriod() );
 
 	Serial.println("Checking attached led count before start()");
-	test.printResult(0, pulse.attachedLedCount());
+	test.printResult(0, pulse.getAttachedLedCount());
 
 	Serial.println("Basic pulse test");
 	led.start();
 
 	Serial.println("Checking attached led count after start()");
-	test.printResult(1, pulse.attachedLedCount());
+	test.printResult(1, pulse.getAttachedLedCount());
 
 	Serial.println("Checking pulse.isStarted()");
 	test.printResult(true, pulse.isStarted());
