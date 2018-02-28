@@ -127,24 +127,43 @@ float ESPPulse::calculateNewSineValue() {
 
 float ESPPulse::_sin(float theta){
 
-	/* Will sine be positive or negative */
-	const int8_t sign = (theta > PI) ? -1 : 1;
+	theta = constrainTheta(theta);
 
-	/* Is theta in quadrant 2 or 4 */
+	if (x < 0)
+    	return 1.27323954 * x + .405284735 * x * x;
+	else
+		return 1.27323954 * x - 0.405284735 * x * x;
 
-	//const bool QUAD_2_4 = (theta > HALF_PI) ^ (theta > 3 * HALF_PI / 2);
-	const bool QUAD_2_4 = 
-		(theta >= HALF_PI && theta <= PI)
-		|| (theta >= 3/2 * HALF_PI && theta <= TWO_PI);
+
+	// /* Will sine be positive or negative */
+	// const int8_t sign = (theta > PI) ? -1 : 1;
+
+	// /* Is theta in quadrant 2 or 4 */
+
+	// //const bool QUAD_2_4 = (theta > HALF_PI) ^ (theta > 3 * HALF_PI / 2);
+	// const bool QUAD_2_4 = 
+	// 	(theta >= HALF_PI && theta <= PI)
+	// 	|| (theta >= 3/2 * HALF_PI && theta <= TWO_PI);
 
 	
-	/* How far from beginning or end of table to read */
-	const uint8_t OFFSET = (SINE_STEPS - 1) * theta / HALF_PI;
+	// /* How far from beginning or end of table to read */
+	// const uint8_t OFFSET = (SINE_STEPS - 1) * theta / HALF_PI;
 
-	/* Find correct index in the table */
-	/* Read from reverse if in quadrant 2 or 4 */
-	const uint8_t INDEX = QUAD_2_4 ? SINE_STEPS - OFFSET : OFFSET;
+	// /* Find correct index in the table */
+	// /* Read from reverse if in quadrant 2 or 4 */
+	// const uint8_t INDEX = QUAD_2_4 ? SINE_STEPS - OFFSET : OFFSET;
 	
-	return sign * pgm_read_float_near(_sineLut + INDEX);
+	// return sign * pgm_read_float_near(_sineLut + INDEX);
 
+}
+
+float ESPPulse::constrainTheta(float theta) {
+
+	while(theta < 0) {
+		theta += TWO_PI
+	}
+	while(theta > TWO_PI) {
+		theta -= TWO_PI
+	}
+	return theta;
 }

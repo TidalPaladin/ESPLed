@@ -149,6 +149,8 @@ private:
 	 */
 	float _sin(float theta);
 
+    static float constrainTheta(float theta);
+
 
 	/**
 	 * @brief Populates a sine lookup table at compile time
