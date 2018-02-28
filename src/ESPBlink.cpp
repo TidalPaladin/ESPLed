@@ -7,19 +7,22 @@ const uint8_t ESPBlink::DURATION_INDEX = 1;
 
 
 
-ESPBlink &ESPBlink::interval(unsigned long ms) {
+ESPBlink &ESPBlink::setInterval(unsigned long ms) {
 	if(ms == 0) panic();
 
 	_changeTimeOf(INTERVAL_INDEX, ms);
 	return *this;   
 }
 
-ESPBlink &ESPBlink::duration(unsigned long ms) {
+ESPBlink &ESPBlink::setDuration(unsigned long ms) {
 	if(ms == 0) panic();
 
 	_changeTimeOf(DURATION_INDEX, ms);
 	return *this;
 }
+
+unsigned long ESPBlink::getInterval() const { return _eventChain.getTimeOf(INTERVAL_INDEX); }
+unsigned long ESPBlink::getDuration() const { return _eventChain.getTimeOf(DURATION_INDEX); }
 
 
 void ESPBlink::construct(unsigned long interval_ms, unsigned long duration_ms) {

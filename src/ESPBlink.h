@@ -46,8 +46,8 @@ public:
 	 * 
 	 * @return this
 	 */
-	ESPBlink &interval(unsigned long ms);
-	unsigned long interval() const { return _eventChain.getTimeOf(INTERVAL_INDEX); }
+	ESPBlink &setInterval(unsigned long ms);
+	unsigned long getInterval() const;
 	
 	/**
 	 * @brief Sets how long the LED stays on for during a blink
@@ -59,8 +59,8 @@ public:
 	 * 
 	 * @return this
 	 */
-	ESPBlink &duration(unsigned long ms);
-	unsigned long duration() const { return _eventChain.getTimeOf(DURATION_INDEX); }
+	ESPBlink &setDuration(unsigned long ms);
+	unsigned long getDuration() const;
 
 
 protected:

@@ -357,8 +357,8 @@ bool blinkTest1() {
 	 
 
 	Serial.println("Checking default blink timings");
-	test.printResult( default_interval, blink.interval() );
-	test.printResult( default_duration, blink.duration() );
+	test.printResult( default_interval, blink.getInterval() );
+	test.printResult( default_duration, blink.getDuration() );
 
 	Serial.println("Checking attached led count before start()");
 	test.printResult(0, blink.getAttachedLedCount());
@@ -378,10 +378,10 @@ bool blinkTest1() {
 	Serial.println("Test changing parameters on the fly");
 	const int NEW_INTERVAL = 100;
 	const int NEW_DURATION = 50;
-	blink.interval(NEW_INTERVAL);
-	blink.duration(NEW_DURATION);
-	test.printResult( NEW_INTERVAL, blink.interval() );
-	test.printResult( NEW_DURATION, blink.duration() );
+	blink.setInterval(NEW_INTERVAL);
+	blink.setDuration(NEW_DURATION);
+	test.printResult( NEW_INTERVAL, blink.getInterval() );
+	test.printResult( NEW_DURATION, blink.getDuration() );
 
 	delay(4000);
 	blink.stopAll();
