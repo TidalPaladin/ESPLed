@@ -149,7 +149,11 @@ private:
 	 */
 	float _sin(float theta);
 
-    static float constrainTheta(float theta);
+    /**
+     * @brief Constrains theta to -pi, pi
+     * 
+     */
+    static float constrainTheta(float &theta);
 
 
 	/**
