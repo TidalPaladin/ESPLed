@@ -25,27 +25,30 @@ _highIsOn(off_state != HIGH ? true : false)
 
 ESPLed::~ESPLed() {
 	stop();
-	minBrightness(0);
+	setMinBrightness(0);
 	off();
 }
 
 
-ESPLed &ESPLed::maxBrightness(uint8_t percent) {
+ESPLed &ESPLed::setMaxBrightness(uint8_t percent) {
 	_brightnessRange.maxBrightnessPercent(percent);
 	return *this;
 }
 
-ESPLed &ESPLed::minBrightness(uint8_t percent){
+ESPLed &ESPLed::setMinBrightness(uint8_t percent){
 	_brightnessRange.minBrightnessPercent(percent);
 	return *this;
 } 
 
-
+gpio_num_t ESPLed::getPin() const { return _gpio.pin(); }
+uint8_t ESPLed::getMaxBrightness() const { return _brightnessRange.maxBrightnessPercent(); }
+uint8_t ESPLed::getMinBrightness() const { return _brightnessRange.minBrightnessPercent(); }
+ESPLedInterface &ESPLed::getMode() const { return *_strategy; }
 
 ESPLed &ESPLed::on(uint8_t percent) {
 
 	// Force percent to be within min/max
-	percent = constrain(percent, minBrightness(), maxBrightness());
+	percent = constrain(percent, getMinBrightness(), getMaxBrightness());
 
 	// Map the percent to an antilog analog value
 	uint16_t analog_value = ESPLedBrightness::percentToAnalog(percent);
@@ -71,7 +74,7 @@ ESPLed &ESPLed::toggle(uint8_t power) {
 } 
 
 ESPLed &ESPLed::setMode(ESPLedInterface &s) {
-	if( active() ) stop();
+	if( isActive() ) stop();
 	_strategy = &s;
 	return *this;
 }
@@ -84,13 +87,13 @@ ESPLed &ESPLed::start() {
 }
 
 ESPLed &ESPLed::stop() {
-	if( active() ) {
+	if( isActive() ) {
 		_strategy->stop(*this);
 	}
 	return *this;
 }
 
-bool ESPLed::active() const {
+bool ESPLed::isActive() const {
 	return (_strategy != nullptr) && ( _strategy->isStarted() ); 
 }
 

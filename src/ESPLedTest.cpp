@@ -166,7 +166,7 @@ bool ledBasicTest1() {
 	ESPLed led(PIN, HIGH);
 
 	Serial.println("Checking pin assignment");
-	test.printResult(PIN, led.pin());
+	test.printResult(PIN, led.getPin());
 
 	test.printResult(false, led.highIsOn());
 
@@ -183,9 +183,9 @@ bool ledBasicTest1() {
 	led.toggle();
 	test.printResult(HIGH, digitalRead(PIN));
 
-	test.printResult(100, led.maxBrightness());
-	test.printResult(0, led.minBrightness());
-	test.printResult(false, led.active());
+	test.printResult(100, led.getMaxBrightness());
+	test.printResult(0, led.getMinBrightness());
+	test.printResult(false, led.isActive());
 
 	return test.printResult();
 }
@@ -371,7 +371,7 @@ bool blinkTest1() {
 
 	Serial.println("Checking blink.isStarted()");
 	test.printResult(true, blink.isStarted());
-	test.printResult(true, led.active());
+	test.printResult(true, led.isActive());
 
 	delay(4000);
 	

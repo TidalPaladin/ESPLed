@@ -99,8 +99,8 @@ void ESPPulse::construct(unsigned long refresh_rate_hz, unsigned long period_ms)
 uint8_t ESPPulse::calculateNewBrightness(const ESPLed &led) const {
 
 	/* Calculate A and O for f(x) = A * sin(x) + O */
-	const uint8_t OFFSET = (led.maxBrightness() + led.minBrightness()) / 2;
-	const uint8_t AMPLITUDE = led.maxBrightness() - OFFSET;
+	const uint8_t OFFSET = (led.getMaxBrightness() + led.getMinBrightness()) / 2;
+	const uint8_t AMPLITUDE = led.getMaxBrightness() - OFFSET;
 
 	/* Find the value of f(x) = A * sin(x) + O */
 	const uint8_t PERCENT_BRIGHTNESS = AMPLITUDE * _currentSine + OFFSET;

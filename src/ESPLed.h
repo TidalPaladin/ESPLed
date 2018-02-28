@@ -72,7 +72,7 @@ public:
 	 * 
 	 * @return GPIO number, 0 <= pin() <= (max GPIO num)
 	 */
-	gpio_num_t pin() const { return _gpio.pin(); }
+	gpio_num_t getPin() const;
 
 
 	/** 
@@ -83,8 +83,8 @@ public:
 	 * 
 	 * @return this
 	 */
-	ESPLed &maxBrightness(uint8_t percent); 
-	uint8_t maxBrightness() const { return _brightnessRange.maxBrightnessPercent(); }
+	ESPLed &setMaxBrightness(uint8_t percent); 
+	uint8_t getMaxBrightness() const;
 
 	/**
 	 * @brief Sets the minimum LED brightness as a percentage. This
@@ -95,8 +95,8 @@ public:
 	 * 
 	 * @return this 
 	 */
-	ESPLed &minBrightness(uint8_t percent);
-	uint8_t minBrightness() const { return _brightnessRange.minBrightnessPercent(); }
+	ESPLed &setMinBrightness(uint8_t percent);
+	uint8_t getMinBrightness() const;
 
 
 
@@ -110,6 +110,7 @@ public:
 	 * @return this
 	 */
 	ESPLed &setMode(ESPLedInterface &strategy);
+	ESPLedInterface &getMode() const;
 
 
 	/**
@@ -137,13 +138,12 @@ public:
 	 * 
 	 * @return false if start() was called more recently than stop(), true otherwise
 	 */
-	bool active() const;
+	bool isActive() const;
 
 	/**
 	 * @brief Gets the state of the LED
 	 * 
-	 * @note  If minBrightness() != 0 and off() was called, isOn() == false but the
-	 *        LED will be emitting light
+	 * @note  If minBrightness() != 0 and off() was called, isOn() == false but thesetM	 *        LED will be emitting light
 	 * 
 	 * @return
 	 *   - true if the LED is on
