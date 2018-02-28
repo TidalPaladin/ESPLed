@@ -75,7 +75,7 @@ public:
 	 * @return  The number of attached ESPLed objects
 	 *          0 <= attachedLedCount()
 	 */
-	size_t getAttachedLedCount() const { return _leds.size(); }
+	size_t getAttachedLedCount() const;
 
 	/**
 	 * @brief Start the periodic action for this strategy
@@ -129,7 +129,7 @@ public:
 	 *   - true if running
 	 *   - false otherwise
 	 */
-	bool isStarted() const { return _eventChain.running(); } 
+	bool isStarted() const;
 
 public:
 

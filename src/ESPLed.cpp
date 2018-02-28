@@ -40,10 +40,8 @@ ESPLed &ESPLed::setMinBrightness(uint8_t percent){
 	return *this;
 } 
 
-gpio_num_t ESPLed::getPin() const { return _gpio.pin(); }
-uint8_t ESPLed::getMaxBrightness() const { return _brightnessRange.getMaxBrightnessPercent(); }
-uint8_t ESPLed::getMinBrightness() const { return _brightnessRange.getMinBrightnessPercent(); }
-ESPLedInterface &ESPLed::getMode() const { return *_strategy; }
+
+
 
 ESPLed &ESPLed::on(uint8_t percent) {
 
@@ -110,5 +108,11 @@ bool ESPLed::isActive() const {
 
 
 
-
-
+/* Basic getters */
+gpio_num_t ESPLed::getPin() const { return _gpio.pin(); }
+uint8_t ESPLed::getMaxBrightness() const { return _brightnessRange.getMaxBrightnessPercent(); }
+uint8_t ESPLed::getMinBrightness() const { return _brightnessRange.getMinBrightnessPercent(); }
+ESPLedInterface &ESPLed::getMode() const { return *_strategy; }
+bool ESPLed::isOn() const { return _isOn; }
+ESPLed::operator bool() const { return _isOn; }
+bool ESPLed::highIsOn() const { return _highIsOn; }

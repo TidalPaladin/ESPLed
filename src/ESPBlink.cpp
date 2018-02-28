@@ -41,5 +41,5 @@ void ESPBlink::construct(unsigned long interval_ms, unsigned long duration_ms) {
 		led->off();
 	});
 
-	}
+}
 

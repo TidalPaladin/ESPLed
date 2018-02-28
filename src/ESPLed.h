@@ -149,8 +149,8 @@ public:
 	 *   - true if the LED is on
 	 *   - false otherwise
 	 */
-	bool isOn() const { return _isOn; }
-	operator bool() const { return _isOn; }
+	bool isOn() const;
+	operator bool() const;
 
 
 	/**
@@ -159,7 +159,7 @@ public:
 	 * @return  true if on() will set the LED to HIGH
 	 *          false if on() will set the LED to LOW
 	 */
-	bool highIsOn() const { return _highIsOn; }
+	bool highIsOn() const;
 
 	/**
 	 * @brief Turns the LED on to a given brightness

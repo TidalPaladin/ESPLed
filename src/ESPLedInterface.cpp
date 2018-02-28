@@ -43,6 +43,10 @@ void ESPLedInterface::resumeAll() {
 }
 
 
+size_t ESPLedInterface::getAttachedLedCount() const { return _leds.size(); }
+
+bool ESPLedInterface::isStarted() const { return _eventChain.running(); }
+
 
 
 size_t ESPLedInterface::_addEventEveryLed(unsigned long time_ms, std::function<void(ESPLed *)> f) {
