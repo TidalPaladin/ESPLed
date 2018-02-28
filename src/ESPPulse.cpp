@@ -127,12 +127,12 @@ float ESPPulse::calculateNewSineValue() {
 
 float ESPPulse::_sin(float theta){
 
-	theta = constrainTheta(theta);
+	constrainTheta(theta);
 
-	if (x < 0)
-    	return 1.27323954 * x + .405284735 * x * x;
+	if (theta < 0)
+    	return 1.27323954 * theta + .405284735 * theta * theta;
 	else
-		return 1.27323954 * x - 0.405284735 * x * x;
+		return 1.27323954 * theta - 0.405284735 * theta * theta;
 
 
 	// /* Will sine be positive or negative */
@@ -157,13 +157,13 @@ float ESPPulse::_sin(float theta){
 
 }
 
-float ESPPulse::constrainTheta(float theta) {
+float ESPPulse::constrainTheta(float &theta) {
 
-	while(theta < 0) {
-		theta += TWO_PI
+	while(theta < -1 * PI) {
+		theta += TWO_PI;
 	}
-	while(theta > TWO_PI) {
-		theta -= TWO_PI
+	while(theta > PI) {
+		theta -= TWO_PI;
 	}
 	return theta;
 }
