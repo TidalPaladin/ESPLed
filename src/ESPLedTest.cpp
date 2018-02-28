@@ -335,14 +335,13 @@ void setup() {
 	pwmRangeTest1();
 	mapToAnalogTests();
 	gpioInitTest();
-	// ledTest1();
 	brightnessTests();
 
 	ledBasicTest1();
 
-	blinkTest1();
-	blinkTest2();
-pulseTest1();
+	// blinkTest1();
+	// blinkTest2();
+	pulseTest1();
 
 
 	TestHelper::end();

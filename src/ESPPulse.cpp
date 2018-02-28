@@ -134,8 +134,8 @@ float ESPPulse::_sin(float theta){
 
 	//const bool QUAD_2_4 = (theta > HALF_PI) ^ (theta > 3 * HALF_PI / 2);
 	const bool QUAD_2_4 = 
-		(theta > HALF_PI && theta < PI)
-		|| (theta > 3/2 * HALF_PI && theta < TWO_PI);
+		(theta >= HALF_PI && theta <= PI)
+		|| (theta >= 3/2 * HALF_PI && theta <= TWO_PI);
 
 	
 	/* How far from beginning or end of table to read */
