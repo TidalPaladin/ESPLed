@@ -138,10 +138,10 @@ bool brightnessTests() {
 	for(int test_case = 0; test_case < NUM_VALUES; test_case++) {
 		const uint8_t MIN = test_values[test_case][0];
 		const uint8_t MAX = test_values[test_case][1];
-		brightness.maxBrightnessPercent(MAX);
-		brightness.minBrightnessPercent(MIN);
-		test.printResult(MIN, brightness.minBrightnessPercent());
-		test.printResult(MAX, brightness.maxBrightnessPercent());
+		brightness.setMaxBrightnessPercent(MAX);
+		brightness.setMinBrightnessPercent(MIN);
+		test.printResult(MIN, brightness.getMinBrightnessPercent());
+		test.printResult(MAX, brightness.getMaxBrightnessPercent());
 	}
 
 	return test.printResult();

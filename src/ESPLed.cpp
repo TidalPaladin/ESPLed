@@ -31,18 +31,18 @@ ESPLed::~ESPLed() {
 
 
 ESPLed &ESPLed::setMaxBrightness(uint8_t percent) {
-	_brightnessRange.maxBrightnessPercent(percent);
+	_brightnessRange.setMaxBrightnessPercent(percent);
 	return *this;
 }
 
 ESPLed &ESPLed::setMinBrightness(uint8_t percent){
-	_brightnessRange.minBrightnessPercent(percent);
+	_brightnessRange.setMinBrightnessPercent(percent);
 	return *this;
 } 
 
 gpio_num_t ESPLed::getPin() const { return _gpio.pin(); }
-uint8_t ESPLed::getMaxBrightness() const { return _brightnessRange.maxBrightnessPercent(); }
-uint8_t ESPLed::getMinBrightness() const { return _brightnessRange.minBrightnessPercent(); }
+uint8_t ESPLed::getMaxBrightness() const { return _brightnessRange.getMaxBrightnessPercent(); }
+uint8_t ESPLed::getMinBrightness() const { return _brightnessRange.getMinBrightnessPercent(); }
 ESPLedInterface &ESPLed::getMode() const { return *_strategy; }
 
 ESPLed &ESPLed::on(uint8_t percent) {

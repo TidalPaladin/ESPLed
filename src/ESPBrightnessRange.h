@@ -63,8 +63,8 @@ class ESPLedBrightness {
 		 * 
 		 * @return this
 		 */
-		ESPLedBrightness &maxBrightnessPercent(uint8_t percent);
-		uint8_t maxBrightnessPercent() const { return _maxBrightnessPercent; }
+		ESPLedBrightness &setMaxBrightnessPercent(uint8_t percent);
+		uint8_t getMaxBrightnessPercent() const { return _maxBrightnessPercent; }
 
 		/**
 		 * @brief Sets the minimum brightness as a percentage
@@ -76,8 +76,8 @@ class ESPLedBrightness {
 		 * 
 		 * @return this
 		 */
-		ESPLedBrightness &minBrightnessPercent(uint8_t percent);
-		uint8_t minBrightnessPercent() const { return _minBrightnessPercent; }
+		ESPLedBrightness &setMinBrightnessPercent(uint8_t percent);
+		uint8_t getMinBrightnessPercent() const { return _minBrightnessPercent; }
 
 
 		/**

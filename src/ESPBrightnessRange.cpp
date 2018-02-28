@@ -1,7 +1,7 @@
 #include "ESPBrightnessRange.h"
 
 
-ESPLedBrightness &ESPLedBrightness::maxBrightnessPercent(uint8_t percent) {
+ESPLedBrightness &ESPLedBrightness::setMaxBrightnessPercent(uint8_t percent) {
 	
 	_maxBrightnessPercent = percent;
 
@@ -11,7 +11,7 @@ ESPLedBrightness &ESPLedBrightness::maxBrightnessPercent(uint8_t percent) {
 	return *this;
 }
 
-ESPLedBrightness &ESPLedBrightness::minBrightnessPercent(uint8_t percent) {
+ESPLedBrightness &ESPLedBrightness::setMinBrightnessPercent(uint8_t percent) {
 	
 
 	_minBrightnessPercent = percent;
