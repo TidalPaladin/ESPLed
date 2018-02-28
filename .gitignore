@@ -37,7 +37,7 @@
 .pioenvs
 .piolibdeps
 .vscode
-lib
+lib/readme.txt
 platformio.ini
 .vscode/launch.json
 .pioenvs

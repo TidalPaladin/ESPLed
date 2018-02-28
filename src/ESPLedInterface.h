@@ -16,7 +16,7 @@
 #define __ESPLED_INTERFACE_H__
 
 #include "ESPLed.h"
-#include "ESPEventChain.h"
+#include "EspEventChain.h"
 #include <vector>
 #include <algorithm>
 #include <Arduino.h>
