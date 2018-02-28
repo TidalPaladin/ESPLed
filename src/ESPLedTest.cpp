@@ -430,8 +430,8 @@ bool pulseTest1() {
      
 
     Serial.println("Checking default pulse timings");
-    test.printResult( default_refresh_rate_hz, pulse.refreshRate() );
-    test.printResult( default_period_ms, pulse.period() );
+    test.printResult( default_refresh_rate_hz, pulse.getRefreshRate() );
+    test.printResult( default_period_ms, pulse.getPeriod() );
 
     Serial.println("Checking attached led count before start()");
     test.printResult(0, pulse.attachedLedCount());
@@ -450,10 +450,10 @@ bool pulseTest1() {
     Serial.println("Test changing parameters on the fly");
     const int NEW_REFRESH_RATE = 150;
     const int NEW_PERIOD = 300;
-    pulse.refreshRate(NEW_REFRESH_RATE);
-    pulse.period(NEW_PERIOD);
-    test.printResult( NEW_REFRESH_RATE, pulse.refreshRate() );
-    test.printResult( NEW_PERIOD, pulse.period() );
+    pulse.setRefreshRate(NEW_REFRESH_RATE);
+    pulse.setPeriod(NEW_PERIOD);
+    test.printResult( NEW_REFRESH_RATE, pulse.getRefreshRate() );
+    test.printResult( NEW_PERIOD, pulse.getPeriod() );
     Serial.println("Should be pulsing fast now!");
 
     delay(4000);

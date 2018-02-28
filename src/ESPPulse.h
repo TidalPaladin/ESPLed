@@ -50,8 +50,8 @@ public:
      * 
      * @return this
      */
-    ESPPulse &period(unsigned long ms);
-    unsigned long period() const;
+    ESPPulse &setPeriod(unsigned long ms);
+    unsigned long getPeriod() const;
 
     /**
      * @brief   Sets the rate at which changes in pulse brightness
@@ -62,8 +62,26 @@ public:
      * 
      * @return this
      */
-    ESPPulse &refreshRate(unsigned int hz);
-    unsigned long refreshRate() const;
+    ESPPulse &setRefreshRate(unsigned int hz);
+    unsigned long getRefreshRate() const;
+
+    /**
+     * @brief Resets theta such that the sine wave will be at maximum amplitude. Pulseing continues
+     * uninterrupted
+     * 
+     * post: Pulse intensity set to maximum amplitude, isStarted() after = isStarted before
+     * 
+     */
+    void setPulseToPeak();
+
+    /**
+     * @brief Resets theta such that the sine wave will be at minimum amplitude. Pulseing continues
+     * uninterrupted
+     * 
+     * post: Pulse intensity set to minimum amplitude, isStarted() after = isStarted before
+     * 
+     */
+    void setPulseToTrough();
 
  
 

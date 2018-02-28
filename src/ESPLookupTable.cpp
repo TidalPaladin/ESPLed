@@ -27,8 +27,7 @@ const uint16_t ESPLedBrightness::_brightnessLut[101] PROGMEM = {
   0x3ff,	
 };
 
-#ifdef __ESP_LED_PULSE__
-// // Sine lookup table on [0,pi/2]
+// Sine lookup table on [0,pi/2]
 const float ESPPulse::_sineLut[SINE_STEPS] PROGMEM = {
   0.0000000,	0.0157073,	0.0314108,	0.0471065,	0.0627905,
   0.0784591,	0.0941083,	0.1097343,	0.1253332,	0.1409012,
@@ -52,4 +51,3 @@ const float ESPPulse::_sineLut[SINE_STEPS] PROGMEM = {
   0.9969173,	0.9980267,	0.9988899,	0.9995066,	0.9998766,
   1.0000000	
 };
-#endif
