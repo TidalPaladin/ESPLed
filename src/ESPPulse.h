@@ -22,7 +22,7 @@ public:
 	ESPLedInterface(1),
 	_currentSine(0)
 	{
-		construct(60, 2000);
+		construct(30, 2000);
 	}
 
 	/**
@@ -130,7 +130,7 @@ private:
 	 * 
 	 * @return led.minBrightness() <= val <= led.maxBrightness() appropriate to where we are on the sine wave
 	 */
-	uint8_t calculateNewBrightness(const ESPLed &led) const;
+	uint8_t calculateNewBrightness(ESPLed *led) const;
 
 	/**
 	 * @brief Calculates the new value of sin(theta) after taking a step forward
@@ -147,13 +147,13 @@ private:
 	 * 
 	 * @return sin(theta)
 	 */
-	float _sin(float theta);
+	static float _sin(float theta);
 
     /**
      * @brief Constrains theta to -pi, pi
      * 
      */
-    static float constrainTheta(float &theta);
+    static float constrainTheta(float theta);
 
 
 	/**
@@ -167,8 +167,6 @@ private:
 	float _theta_rads = PI;              // Current value of theta
 	float _step_rads;               // Incremental change of theta
 	float _currentSine;                 // Track sin(theta) separately 
-
-	static const float _sineLut[SINE_STEPS];
 
 };
 

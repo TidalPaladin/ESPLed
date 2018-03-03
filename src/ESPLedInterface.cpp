@@ -45,7 +45,7 @@ void ESPLedInterface::resumeAll() {
 
 size_t ESPLedInterface::getAttachedLedCount() const { return _leds.size(); }
 
-bool ESPLedInterface::isStarted() const { return _eventChain.running(); }
+bool ESPLedInterface::isStarted() { return _eventChain.isRunning(); }
 
 
 
@@ -53,7 +53,7 @@ size_t ESPLedInterface::_addEventEveryLed(unsigned long time_ms, std::function<v
 
 	// for each method must be captured by value copy, not reference
 	EspEventChain::callback_t forEach = [f, this]() {
-		if(!f) {
+		if(!f || this == nullptr) {
 			Serial.println("void(ESPLed*) callback function wasn't callable");
 			panic();
 		}
@@ -62,6 +62,7 @@ size_t ESPLedInterface::_addEventEveryLed(unsigned long time_ms, std::function<v
 			if(led != nullptr) {
 				f(led); 
 			}
+			// ESP.wdtFeed();
 		}
 	};
 	
@@ -72,7 +73,8 @@ size_t ESPLedInterface::_addEvent(unsigned long time_ms, EspEventChain::callback
 	EspEvent newEvent(time_ms, function);
 
 	// Add the function that will act on all LEDS to the event chain
-	return _eventChain.addEvent(newEvent);
+	_eventChain.push_back(newEvent);
+	return _eventChain.numEvents();
 }
 
 

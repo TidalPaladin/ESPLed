@@ -25,25 +25,28 @@ ESPLedBrightness &ESPLedBrightness::setMinBrightnessPercent(uint8_t percent) {
 
 uint16_t ESPLedBrightness::percentToAnalog(uint8_t percent) {
 
-	assert(percent >= 0 && percent <= 100);
+	if(percent > 100)
+		panic();
+
 	if(percent == 0) return 0;
 
 	// TODO figure out a better way to store table data & decouple PWMRANGE from table entry
 	// uint16_t analog_value = pgm_read_word(_brightnessLut + percent);
 	// return map( analog_value, 0, 1023, 0, ESPPwmGpio::pwmRange() ); 
-	return percentToAnalogExact(percent);
+	Serial.println("getting");
+	uint16_t ret = percentToAnalogExact(percent);
+	Serial.println(ret);
+	return ret;
   
 }
 
-constexpr uint16_t ESPLedBrightness::percentToAnalogExact(const uint8_t percent) {
-	return (uint16_t)(
-		pow(
-			(float)percent / (float)__ESP_BRIGHTNESS_RANGE_MAX_IN__, __ESP_BRIGHTNESS_RANGE_GAMMA__
-		) * 
-		__ESP_BRIGHTNESS_RANGE_MAX_OUT__ 
-		+ 0.5
-		)
-	;
+uint16_t ESPLedBrightness::percentToAnalogExact(const uint8_t percent) {
+
+	//return pow( (float)percent / 100, 3 ) * PWMRANGE + 0.5;
+	//return percent * percent * percent * PWMRANGE / (100*100*100) + 0.5;
+	return percent * percent * percent * PWMRANGE / (1000000);
+
+
 }
 
  

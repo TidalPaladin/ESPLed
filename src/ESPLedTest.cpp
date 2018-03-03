@@ -122,7 +122,7 @@ bool gpioInitTest() {
 
 #ifdef __ESP_BRIGHTNESS_RANGE_H__
 bool brightnessTests() {
-	TestHelper test("ESPLedBrightness","various fixed tests");
+	TestHelper test("ESPLedBrightness","various fixed range tests");
    
 	ESPLedBrightness brightness;
 
@@ -146,8 +146,24 @@ bool brightnessTests() {
 
 	return test.printResult();
 }
+
+bool brightnessTests2() {
+	TestHelper test("ESPLedBrightness","various fixed conversion tests");
+   
+	ESPLedBrightness brightness;
+
+	uint8_t test_values[] = {0, 1, 20, 50, 75, 90, 99, 100};
+	const uint8_t NUM_VALUES = sizeof(test_values) / sizeof(test_values[0]);
+
+	for(int test_case = 0; test_case < NUM_VALUES; test_case++) {
+		test.printResultRange(512, ESPLedBrightness::percentToAnalog(test_values[test_case]), 512);
+	}
+
+	return test.printResult();
+}
 #else
 	bool brightnessTests() { return true; }
+	bool brightnessTests2() { return true; }
 #endif
 
 
@@ -189,14 +205,37 @@ bool ledBasicTest1() {
 
 	return test.printResult();
 }
+
+bool ledBasicTest2() {
+
+	TestHelper test("ESPLed::on()","fast updates to brightness");
+	
+	const uint8_t PIN = 2;
+	analogWriteRange(PWMRANGE);
+	ESPLed led(PIN, HIGH);
+
+	for(int repeats = 0; repeats < 6; repeats++) {
+		for(int level = 0; level < 101; level++){
+			ESP.wdtFeed();
+			led.on(level);
+		}
+		for(int level = 100; level >= 0; level--) {
+			ESP.wdtFeed();
+			led.on(level);
+		}
+	}
+
+	return test.printResult();
+}
 #else
 bool ledTest1() { return true; }
+bool ledTest2() { return true; }
 #endif
 
 
 
 
-#ifdef __ESPLED_H__
+#ifdef __ESP_BLINK_H__
 
 bool blinkTest1() {
 	TestHelper test("ESPBlink()", "visual blink test");
@@ -300,15 +339,18 @@ bool pulseTest1() {
 	delay(4000);
 	
 	Serial.println("Test changing parameters on the fly");
-	const int NEW_REFRESH_RATE = 150;
-	const int NEW_PERIOD = 300;
+	const int NEW_REFRESH_RATE = 60;
+	const int NEW_PERIOD = 1000;
 	pulse.setRefreshRate(NEW_REFRESH_RATE);
 	pulse.setPeriod(NEW_PERIOD);
 	test.printResult( NEW_REFRESH_RATE, pulse.getRefreshRate() );
 	test.printResult( NEW_PERIOD, pulse.getPeriod() );
 	Serial.println("Should be pulsing fast now!");
 
-	delay(4000);
+	for(uint32_t t0 = millis(); millis() - t0 < 10000; ){
+		yield();
+	}
+	Serial.println("About to stop all");
 	pulse.stopAll();
 
 	test.printResult(false, pulse.isStarted());
@@ -336,9 +378,12 @@ void setup() {
 	mapToAnalogTests();
 	gpioInitTest();
 	brightnessTests();
+	brightnessTests2();
 
 	ledBasicTest1();
+	ledBasicTest2();
 
+	ESP.wdtEnable(500);
 	// blinkTest1();
 	// blinkTest2();
 	pulseTest1();

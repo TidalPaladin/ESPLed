@@ -129,7 +129,7 @@ public:
 	 *   - true if running
 	 *   - false otherwise
 	 */
-	bool isStarted() const;
+	bool isStarted();
 
 public:
 
@@ -141,7 +141,9 @@ public:
 	 * @return The period of the wave in milliseconds
 	 */
 	template <typename T>
-	static constexpr T hzToMilliseconds(T hz) { 
+	static T hzToMilliseconds(T hz) { 
+		if(hz == 0)
+			panic();
 		return hz ? 1000 / (double)hz : 0; 
 	}
 
@@ -153,7 +155,7 @@ public:
 	 * @return The frequency of the wave in hertz
 	 */
 	template <typename T>
-	static constexpr T millisecondsToHz(T ms) { 
+	static T millisecondsToHz(T ms) { 
 		return hzToMilliseconds(ms);  // The equations are identical
 	}
 

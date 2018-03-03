@@ -16,7 +16,7 @@
 
 #define __ESP_BRIGHTNESS_RANGE_MAX_IN__     100
 #define __ESP_BRIGHTNESS_RANGE_MAX_OUT__    PWMRANGE
-#define __ESP_BRIGHTNESS_RANGE_GAMMA__      2.8
+#define __ESP_BRIGHTNESS_RANGE_GAMMA__      3
 
 
 class ESPLedBrightness {
@@ -107,7 +107,7 @@ class ESPLedBrightness {
 		 * 
 		 * @return The PWM value
 		 */
-		static constexpr uint16_t percentToAnalogExact(const uint8_t percent);
+		static uint16_t percentToAnalogExact(const uint8_t percent);
 
 	private:
 
