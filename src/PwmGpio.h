@@ -14,6 +14,10 @@
 #include <Arduino.h>
 #include <assert.h>
 
+#ifndef PWMRANGE
+#define PWMRANGE 1023
+#endif
+
 typedef uint8_t gpio_num_t;
 
 /* Not the number of GPIOs, but the largest GPIOXX number */
@@ -29,8 +33,11 @@ typedef uint8_t gpio_num_t;
 #endif
 
 
-extern "C" uint32_t pwm_range;
-extern "C" uint32_t pwm_freq;
+extern "C" {
+	extern uint32_t pwm_range;
+	extern uint32_t pwm_freq;
+	void pwm_stop_pin(uint8_t pin);
+}
 
 class ESPPwmGpio {
 
@@ -57,7 +64,10 @@ public:
 	_pin(pin),
 	_onWhenHigh(onWhenHigh)
 	{
-		assert(pin <= __ESP_MAX_GPIO_NUM__);
+		if(pin > __ESP_MAX_GPIO_NUM__) {
+			Serial.printf("ESPPwmGpio: %i is an invalid pin\n", pin);
+			panic();
+		}
 		initialize();
 	}
 
@@ -117,7 +127,7 @@ public:
 	 *          signal frequency = pwmFrequency, signal duty = analog_value / pwmRange()
 	 * 
 	 */
-	void analogWrite(uint16_t analog_value);
+	void analogWrite(volatile uint16_t analog_value);
 
 
 
@@ -144,9 +154,15 @@ public:
 	 * No idea why
 	 * 
 	 */
-	static uint32_t pwmRange() { if(pwm_range) return pwm_range; } 
-	static uint32_t pwmFrequency() { if(pwm_freq) return pwm_freq; }
+	static uint32_t pwmRange() { 		
+		return ::pwm_range;
+		} 
+	static uint32_t pwmFrequency() { 	
+		return ::pwm_freq; 
+	}
 
+
+	
 
 #ifdef ESP32
 
@@ -157,7 +173,7 @@ public:
 	 * 
 	 * @return The channel, 0 <= channel() <= 15
 	 */
-	uint8_t channel() const { return _CHANNEL_32; }
+	uint8_t channel() const { return _channel; }
 
 
 	/**
@@ -167,14 +183,16 @@ public:
 	 * 
 	 * @return The frequency in Hz, frequency() > 0
 	 */
-	unsigned long frequency() const { return _gpio.freq; }
+	unsigned long frequency() const { return _frequency; }
 
 #endif
 
 
 private:
 
-	bool _onWhenhigh : 1;
+	//inline uint16_t correctAnalogValue(uint16_t analog_value) const;
+
+	bool _onWhenHigh : 1;
 	gpio_num_t _pin;
 
 #ifdef ESP32
@@ -183,7 +201,6 @@ private:
 	uint8_t _resolution : 4;  // Use 10 bit resolution to match default for ESP8266
 #endif
 
-	bool _onWhenHigh : 1;
 
 };
 

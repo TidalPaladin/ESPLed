@@ -2,9 +2,13 @@
 #include "ESPLed.h"
 #include "EspEventChain.h"
 
+void wdtFeed() {
+	#ifndef ESP32
+		ESP.wdtFeed();
+	#endif
+}
 
-
-#ifdef __PWM_GPIO_H__
+#ifdef ESP32
 
 	bool pwmRangeTest1() {
 
@@ -46,15 +50,22 @@ bool mapToAnalogTests() {
    
 	const uint16_t ANALOG_RANGE = 1023;
 	const uint8_t PERCENT_STEPS = 101;
+	#ifndef ESP32
 	analogWriteRange(ANALOG_RANGE);
-
+	#endif
 	int inputs[] = {0, 25, 50, 75, 100};
+
 	for(int i : inputs) {
 
-		const uint16_t expected = ANALOG_RANGE * ( log(i) / log(PERCENT_STEPS) );
+		// Polynomial approximation
+		const uint16_t expected = ANALOG_RANGE * pow((double)i/100,3);
 		const uint16_t actual = ESPLedBrightness::percentToAnalog(i);
 
 		test.printResult(expected, actual);
+	}
+
+	for(int i = 0; i <= 100; i++) {
+		ESPLedBrightness::percentToAnalog(i);
 	}
 
 	return test.printResult();
@@ -104,8 +115,48 @@ bool gpioInitTest() {
 	return test.printResult();
 
 }
+
+bool gpioAnalogWriteTest() {
+	TestHelper test("ESPPwmGpio::analogWrite", "handling bad values");
+	const uint8_t PIN = 2;
+	analogWriteRange(PWMRANGE);
+
+	ESPPwmGpio gpio(2);
+	
+	const uint32_t BAD_VALUES[] = {1025, 60000, 1000000000};
+	
+	for(uint16_t analogVal : BAD_VALUES) {
+		gpio.analogWrite(analogVal);
+	}
+	
+	return test.printResult();
+}
+
+bool gpioAnalogWriteTest2() {
+	TestHelper test("ESPPwmGpio::analogWrite", "handling good values");
+	const uint8_t PIN = 2;
+	analogWriteRange(PWMRANGE);
+
+	ESPPwmGpio gpio(2);
+	
+	for(int repeats = 0; repeats < 5; repeats++){
+		for(int i = 0; i < PWMRANGE; i++) {
+			gpio.analogWrite(i);
+			wdtFeed();
+		}
+		for(int i = PWMRANGE; i >= 0; i--) {
+			gpio.analogWrite(i);
+			wdtFeed();
+		}
+	}
+	
+	return test.printResult();
+}
+
 #else
 	bool gpioInitTest() { return true; }
+	bool gpioAnalogWriteTest() { return true; }
+	bool gpioAnalogWriteTest2() { return true; }
 #endif
 
 
@@ -161,9 +212,28 @@ bool brightnessTests2() {
 
 	return test.printResult();
 }
+
+bool brightnessTests3() {
+	TestHelper test("ESPLedBrightness","percents > 100");
+   
+	ESPLedBrightness brightness;
+	analogWriteRange(PWMRANGE);
+
+	uint32_t test_values[] = {101, 1023};
+	const uint8_t NUM_VALUES = sizeof(test_values) / sizeof(test_values[0]);
+
+	for(int test_case = 0; test_case < NUM_VALUES; test_case++) {
+
+		const uint32_t EXPECTED = test_case & B11111111;
+		test.printResult(PWMRANGE, ESPLedBrightness::percentToAnalog(test_values[test_case]));
+	}
+
+	return test.printResult();
+}
 #else
 	bool brightnessTests() { return true; }
 	bool brightnessTests2() { return true; }
+	bool brightnessTests3() { return true; }
 #endif
 
 
@@ -215,12 +285,13 @@ bool ledBasicTest2() {
 	ESPLed led(PIN, HIGH);
 
 	for(int repeats = 0; repeats < 6; repeats++) {
-		for(int level = 0; level < 101; level++){
-			ESP.wdtFeed();
+		for(int level = 0; level < 110; level++){
+			wdtFeed();
 			led.on(level);
 		}
 		for(int level = 100; level >= 0; level--) {
-			ESP.wdtFeed();
+			wdtFeed();
+			Serial.println(level); Serial.flush();
 			led.on(level);
 		}
 	}
@@ -316,7 +387,7 @@ bool pulseTest1() {
 	ESPPulse pulse;
 	led.setMode(pulse);
 
-	const unsigned long default_refresh_rate_hz = 60;
+	const unsigned long default_refresh_rate_hz = 30;
 	const unsigned long default_period_ms = 2000;
 	 
 
@@ -361,7 +432,22 @@ bool pulseTest1() { return true; }
 #endif
 
 
+void induceAnalogWriteFail() {
+	const uint8_t PIN = 2;
 
+	analogWrite(2, 512);
+
+	pinMode(2, OUTPUT);
+	analogWriteRange(1025);
+	analogWrite(2, 10);
+	analogWrite(2, 0);
+	analogWrite(2,0);
+	analogWrite(2,0);
+	analogWrite(2,0);
+	analogWrite(2,0);
+	analogWrite(2, 1050);
+
+}0-
 
 
 
@@ -373,12 +459,20 @@ void setup() {
 	Serial.println("\n\n");
 	Serial.println("Beginning tests\n");
 	delay(1000);
+	//analogWriteFreq(200);
+
+	induceAnalogWriteFail();
 
 	pwmRangeTest1();
 	mapToAnalogTests();
+
 	gpioInitTest();
+	gpioAnalogWriteTest();
+	gpioAnalogWriteTest2();
+
 	brightnessTests();
 	brightnessTests2();
+	brightnessTests3();
 
 	ledBasicTest1();
 	ledBasicTest2();

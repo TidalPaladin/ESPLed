@@ -44,6 +44,8 @@ ESPLed &ESPLed::setMinBrightness(uint8_t percent){
 
 
 ESPLed &ESPLed::on(uint8_t percent) {
+	
+	_isOn = percent > getMinBrightness();
 
 	// Force percent to be within min/max
 	percent = constrain(percent, getMinBrightness(), getMaxBrightness());
@@ -53,15 +55,12 @@ ESPLed &ESPLed::on(uint8_t percent) {
 
 	// Generate PWM, this method compensates for off_state
 	_gpio.analogWrite(analog_value);
-	Serial.println("wrote");
-	_isOn = true;
+
 	return *this;
 }
 
 ESPLed &ESPLed::off() {
-	this->on(0); 
-	_isOn = false;
-	return *this;
+	return this->on(0); 
 }
 
 

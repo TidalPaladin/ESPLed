@@ -43,3 +43,4 @@ platformio.ini
 .pioenvs
 .piolibdeps
 .vscode/*.db
+.vscode/.browse.c_cpp.db*

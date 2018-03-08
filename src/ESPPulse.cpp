@@ -4,7 +4,6 @@
 
 
 ESPPulse &ESPPulse::setPeriod(unsigned long ms){
-	Serial.printf("Calling %s\n", __FUNCTION__);
 	if(ms == 0)
 		panic();
 
@@ -13,13 +12,11 @@ ESPPulse &ESPPulse::setPeriod(unsigned long ms){
 }
 
 unsigned long ESPPulse::getPeriod() const {
-	Serial.printf("Calling %s\n", __FUNCTION__);
 	return getPeriodFromDeltaTheta(_step_rads);
 }
 
 
 ESPPulse &ESPPulse::setRefreshRate(unsigned int hz){
-	Serial.printf("Calling %s\n", __FUNCTION__);
 	if(hz == 0)
 		panic();
 	else if( _eventChain.numEvents() < 1)
@@ -31,7 +28,6 @@ ESPPulse &ESPPulse::setRefreshRate(unsigned int hz){
 }
 
 unsigned long ESPPulse::getRefreshRate() const { 
-	Serial.printf("Calling %s\n", __FUNCTION__);
 	if( _eventChain.numEvents() < 1)
 		Serial.println("Panic: tried to get refresh rate but the event chain was too short");
 
@@ -41,13 +37,11 @@ unsigned long ESPPulse::getRefreshRate() const {
 
 
 void ESPPulse::setPulseToPeak() {
-	Serial.printf("Calling %s\n", __FUNCTION__);
 	_theta_rads = PI / 2;
 }
 
 
 void ESPPulse::setPulseToTrough() {
-	Serial.printf("Calling %s\n", __FUNCTION__);
 	_theta_rads = -1* PI / 2;
 }
 
@@ -61,7 +55,6 @@ void ESPPulse::setPulseToTrough() {
 
 
 float ESPPulse::getDeltaThetaFromPeriod(unsigned long period_ms) const {
-	Serial.printf("Calling %s\n", __FUNCTION__);
 	if(period_ms == 0)
 		panic();
 	
@@ -70,7 +63,7 @@ float ESPPulse::getDeltaThetaFromPeriod(unsigned long period_ms) const {
 }
 
 unsigned long ESPPulse::getPeriodFromDeltaTheta(float delta_theta_rads) const {
-	Serial.printf("Calling %s\n", __FUNCTION__);
+
 	if(delta_theta_rads == 0)
 		panic();
 
@@ -79,7 +72,7 @@ unsigned long ESPPulse::getPeriodFromDeltaTheta(float delta_theta_rads) const {
 
 
 void ESPPulse::construct(unsigned long refresh_rate_hz, unsigned long period_ms) {
-	Serial.printf("Calling %s\n", __FUNCTION__);
+	
 	if(refresh_rate_hz == 0 || period_ms == 0)
 		panic();
 
@@ -93,31 +86,20 @@ void ESPPulse::construct(unsigned long refresh_rate_hz, unsigned long period_ms)
 	const uint8_t SECOND_EVENT_TIME_MS = 0; // Loop through all Leds immediately after advancing theta
 
 	_addEvent(FIRST_EVENT_TIME_MS, [this]() {
-		Serial.println("Calling addevent");
-			Serial.flush();
 
 		if(this == nullptr) panic();
 			this->_currentSine = calculateNewSineValue();
 	});
 
 	_addEventEveryLed(SECOND_EVENT_TIME_MS, [this](ESPLed *led) {
-		Serial.println("Adding each");
-			Serial.flush();
 
 		if(led == nullptr || this == nullptr) {
-			Serial.println("NULL");
-			Serial.flush();
+			
 			panic();
 		}
 		const uint8_t BRIGHTNESS = calculateNewBrightness(led);
-		Serial.println("Got brightness");
-		if(BRIGHTNESS != 0)
-			led->isOn();
-			//led->on(BRIGHTNESS);
-		else
-			led->isOn();
-		Serial.println("Finished every led call");
-		Serial.flush();
+		led->on(BRIGHTNESS);
+		
 	});
 
 	// This must come after events are added
@@ -125,8 +107,6 @@ void ESPPulse::construct(unsigned long refresh_rate_hz, unsigned long period_ms)
 }
 
 uint8_t ESPPulse::calculateNewBrightness(ESPLed *led) const {
-	Serial.printf("Calling %s\n", __FUNCTION__);
-		Serial.flush();
 
 	if(led == nullptr)
 		panic();
@@ -141,7 +121,7 @@ uint8_t ESPPulse::calculateNewBrightness(ESPLed *led) const {
 }
 
 float ESPPulse::calculateNewSineValue() {
-	Serial.printf("Calling %s\n", __FUNCTION__);
+	
 	/* Increment theta by the step size */
 	_theta_rads += _step_rads;
 
@@ -153,22 +133,15 @@ float ESPPulse::calculateNewSineValue() {
 }
 
 float ESPPulse::_sin(float theta){
-	Serial.printf("Calling %s\n", __FUNCTION__);
-	Serial.flush();
 	return theta * (1.27323954 +  .405284735 * theta * (theta < 0 ? 1.00000000 : -1.00000000));
 }
 
 float ESPPulse::constrainTheta(float theta) {
-	Serial.printf("Calling %s\n", __FUNCTION__);
-		Serial.flush();
-
 	if(theta < -1 * PI) {
 		theta += TWO_PI;
 	}
 	else if(theta > PI) {
 		theta -= TWO_PI;
 	}
-	Serial.println(theta);
-	Serial.flush();
 	return theta;
 }
